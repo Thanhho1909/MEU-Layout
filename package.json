@@ -1,27 +1,20 @@
 {
-  "name": "ultimate-photo-layout",
+  "name": "meu-layout",
   "version": "1.0.0",
-  "description": "Professional photo layout application for print preparation with custom millimeter sizing and high DPI export",
+  "description": "MEU Layout - Professional photo layout application for print preparation",
   "main": "index.html",
   "scripts": {
-    "start": "serve .",
-    "dev": "serve .",
-    "build": "echo 'Static site - no build needed'"
+    "build": "echo 'Build complete - static site ready'",
+    "start": "echo 'Static site - use vercel dev for local development'",
+    "dev": "vercel dev"
   },
   "keywords": [
     "photo-layout",
-    "print-design",
+    "print-design", 
+    "meu-layout",
     "canvas-export",
-    "millimeter-sizing",
-    "high-dpi",
     "vietnamese"
   ],
-  "author": "Photo Layout Team",
-  "license": "MIT",
-  "devDependencies": {
-    "serve": "^14.0.0"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  }
+  "author": "MEU Layout Team",
+  "license": "MIT"
 }
