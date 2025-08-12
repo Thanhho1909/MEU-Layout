@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Photo Layout - Export Fix</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a73e8, #4285f4);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-layout {
+            display: flex;
+            min-height: 80vh;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+        }
+
+        .control-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .control-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+        }
+
+        .layout-preset {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .layout-button {
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .layout-button:hover {
+            border-color: #1a73e8;
+            background: #f0f4ff;
+        }
+
+        .layout-button.active {
+            border-color: #1a73e8;
+            background: #1a73e8;
+            color: white;
+        }
+
+        .upload-zone {
+            border: 3px dashed #ccc;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+        .upload-zone:hover {
+            border-color: #1a73e8;
+            background: #f0f4ff;
+        }
+
+        .upload-zone.dragover {
+            border-color: #1a73e8;
+            background: #e8f0fe;
+            transform: scale(1.02);
+        }
+
+        .photo-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .photo-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 12px;
+        }
+
+        .photo-item:last-child {
+            border-bottom: none;
+        }
+
+        .photo-thumb {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .photo-info {
+            flex: 1;
+            font-size: 13px;
+        }
+
+        .photo-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .photo-meta {
+            color: #666;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1557b0;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: #34a853;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2d7a3f;
+        }
+
+        .btn-danger {
+            background: #ea4335;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c23321;
+        }
+
+        .preview-area {
+            flex: 1;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f5f5f5;
+        }
+
+        .paper-preview {
+            background: white;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            position: relative;
+            transform-origin: center;
+            margin: 20px 0;
+        }
+
+        .paper-content {
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photo-grid {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            gap: 2px;
+            padding: 5mm;
+        }
+
+        .photo-slot {
+            border: 1px dashed #ccc;
+            background: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photo-slot.occupied {
+            border: 2px solid #34a853;
+            background: transparent;
+        }
+
+        .photo-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .status-info {
+            background: #e8f0fe;
+            border: 1px solid #1a73e8;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .debug-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .progress-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .progress-modal.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .progress-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            min-width: 350px;
+            text-align: center;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1a73e8, #4285f4);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+            }
+            .paper-content {
+                transform: scale(0.7);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Ultimate Photo Layout</h1>
+            <p>Chuyên nghiệp - Export chuẩn - Hỗ trợ custom layout với millimeter</p>
+        </div>
+
+        <div class="main-layout">
+            <div class="sidebar">
+                <!-- Layout Selection -->
+                <div class="control-section">
+                    <h3>📐 Layout Selection</h3>
+                    <div class="layout-preset">
+                        <div class="layout-button active" data-layout="20x30mm">20×30mm</div>
+                        <div class="layout-button" data-layout="50x30mm">50×30mm</div>
+                        <div class="layout-button" data-layout="55x84mm">55×84mm</div>
+                        <div class="layout-button" data-layout="custom">Custom</div>
+                    </div>
+                    <div id="customLayout" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Width (mm)</label>
+                                <input type="number" id="customWidth" value="50" min="10" max="200">
+                            </div>
+                            <div class="form-group">
+                                <label>Height (mm)</label>
+                                <input type="number" id="customHeight" value="30" min="10" max="280">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paper Settings -->
+                <div class="control-section">
+                    <h3>📄 Paper Settings</h3>
+                    <div class="form-group">
+                        <label>Paper Size</label>
+                        <select id="paperSize">
+                            <option value="a4">A4 (210 × 297 mm)</option>
+                            <option value="a3">A3 (297 × 420 mm)</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Margin (mm)</label>
+                            <input type="number" id="margin" value="5" min="0" max="20">
+                        </div>
+                        <div class="form-group">
+                            <label>Gap (mm)</label>
+                            <input type="number" id="gap" value="2" min="0" max="10">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Settings -->
+                <div class="control-section">
+                    <h3>🎨 Export Settings</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Resolution</label>
+                            <select id="exportDPI">
+                                <option value="300">300 DPI</option>
+                                <option value="600">600 DPI</option>
+                                <option value="1200">1200 DPI</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Format</label>
+                            <select id="exportFormat">
+                                <option value="jpg">JPG</option>
+                                <option value="png">PNG</option>
+                                <option value="pdf">PDF</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="control-section">
+                    <h3>📸 Upload Photos</h3>
+                    <div class="upload-zone" id="uploadZone">
+                        <div style="font-size: 40px; margin-bottom: 15px;">📤</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 5px;">Drag & Drop Photos</div>
+                        <div style="font-size: 13px; color: #666;">hoặc click để chọn file</div>
+                        <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Status Information -->
+                <div class="status-info">
+                    <div><strong>Layout:</strong> <span id="layoutInfo">20×30mm</span></div>
+                    <div><strong>Slots:</strong> <span id="slotCount">0</span></div>
+                    <div><strong>Photos:</strong> <span id="photoCount">0</span></div>
+                </div>
+
+                <!-- Photo List -->
+                <div class="control-section">
+                    <h3>📋 Photo List</h3>
+                    <div class="photo-list" id="photoList">
+                        <div style="padding: 20px; text-align: center; color: #999;">No photos uploaded</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-area">
+                <div class="zoom-controls">
+                    <button class="btn btn-primary" onclick="zoomOut()">🔍−</button>
+                    <span id="zoomLevel">70%</span>
+                    <button class="btn btn-primary" onclick="zoomIn()">🔍+</button>
+                    <button class="btn btn-primary" onclick="fitToView()">Fit View</button>
+                </div>
+
+                <div class="paper-preview" id="paperPreview">
+                    <div class="paper-content" id="paperContent">
+                        <div class="photo-grid" id="photoGrid">
+                            <!-- Photo slots will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-danger" onclick="clearAllPhotos()">🗑️ Clear All</button>
+                    <button class="btn btn-success" onclick="exportLayout()" id="exportBtn">📥 Export Layout</button>
+                </div>
+
+                <div class="debug-panel" id="debugPanel" style="display: none;">
+                    <!-- Debug information will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Modal -->
+    <div class="progress-modal" id="progressModal">
+        <div class="progress-content">
+            <div style="font-size: 24px; margin-bottom: 15px;">⚡</div>
+            <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;" id="progressTitle">Processing...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div style="font-size: 14px; color: #666;" id="progressText">Preparing...</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Global Application State
+        const AppState = {
+            photos: [],
+            currentLayout: '20x30mm',
+            paperConfig: {
+                width: 210, // mm
+                height: 297, // mm
+                margin: 5,
+                gap: 2
+            },
+            exportConfig: {
+                dpi: 300,
+                format: 'jpg'
+            },
+            layoutConfig: {
+                photoWidth: 20,
+                photoHeight: 30,
+                cols: 0,
+                rows: 0,
+                totalSlots: 0
+            },
+            zoom: 0.7
+        };
+
+        // Debug logging system
+        function debugLog(category, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${category.toUpperCase()}: ${message}`;
+            console.log(logMessage);
+            
+            const debugPanel = document.getElementById('debugPanel');
+            debugPanel.style.display = 'block';
+            debugPanel.innerHTML += logMessage + '<br>';
+            debugPanel.scrollTop = debugPanel.scrollHeight;
+        }
+
+        // Layout calculation with aspect ratio intelligence
+        function calculateLayout() {
+            debugLog('LAYOUT', 'CALCULATING LAYOUT FOR ' + AppState.currentLayout);
+            
+            const { paperConfig, layoutConfig } = AppState;
+            const availableWidth = paperConfig.width - (paperConfig.margin * 2);
+            const availableHeight = paperConfig.height - (paperConfig.margin * 2);
+            
+            const slotWidth = layoutConfig.photoWidth + paperConfig.gap;
+            const slotHeight = layoutConfig.photoHeight + paperConfig.gap;
+            
+            const cols = Math.floor(availableWidth / slotWidth);
+            const rows = Math.floor(availableHeight / slotHeight);
+            const totalSlots = cols * rows;
+            
+            // Check for portrait orientation correction
+            if (layoutConfig.photoWidth > layoutConfig.photoHeight && totalSlots < 4) {
+                debugLog('LAYOUT', `Swapped to portrait: ${layoutConfig.photoHeight}x${layoutConfig.photoWidth}`);
+                const temp = layoutConfig.photoWidth;
+                layoutConfig.photoWidth = layoutConfig.photoHeight;
+                layoutConfig.photoHeight = temp;
+                return calculateLayout(); // Recalculate with swapped dimensions
+            }
+            
+            AppState.layoutConfig.cols = cols;
+            AppState.layoutConfig.rows = rows;
+            AppState.layoutConfig.totalSlots = totalSlots;
+            
+            debugLog('LAYOUT', `Final layout: ${cols}×${rows} = ${totalSlots} slots`);
+            debugLog('LAYOUT', `Photo size: ${layoutConfig.photoWidth}×${layoutConfig.photoHeight}mm`);
+            
+            updateStatusDisplay();
+            updatePhotoGrid();
+        }
+
+        // Photo aspect ratio calculation
+        function getPhotoAspectRatioForImageGrid() {
+            debugLog('INDEX', 'GETTING PHOTO ASPECT RATIO FOR IMAGE GRID');
+            
+            if (!AppState.currentLayout) {
+                debugLog('INDEX', 'No layout selected, using default 2:3');
+                return 2/3;
+            }
+            
+            const { photoWidth, photoHeight } = AppState.layoutConfig;
+            const aspectRatio = photoWidth / photoHeight;
+            
+            debugLog('INDEX', `Calculated aspect ratio: ${aspectRatio.toFixed(3)} (${photoWidth}×${photoHeight})`);
+            return aspectRatio;
+        }
+
+        // Update status display
+        function updateStatusDisplay() {
+            document.getElementById('layoutInfo').textContent = `${AppState.layoutConfig.photoWidth}×${AppState.layoutConfig.photoHeight}mm`;
+            document.getElementById('slotCount').textContent = AppState.layoutConfig.totalSlots;
+            document.getElementById('photoCount').textContent = AppState.photos.length;
+        }
+
+        // Update photo grid display
+        function updatePhotoGrid() {
+            const grid = document.getElementById('photoGrid');
+            const { cols, rows, totalSlots } = AppState.layoutConfig;
+            
+            grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            
+            // Clear and rebuild grid
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < totalSlots; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'photo-slot';
+                slot.dataset.index = i;
+                
+                if (AppState.photos[i]) {
+                    const img = document.createElement('img');
+                    img.src = AppState.photos[i].url;
+                    img.alt = AppState.photos[i].name;
+                    img.loading = 'lazy';
+                    slot.appendChild(img);
+                    slot.classList.add('occupied');
+                } else {
+                    slot.textContent = i + 1;
+                }
+                
+                grid.appendChild(slot);
+            }
+            
+            debugLog('GRID', `Grid updated: ${cols}×${rows} with ${totalSlots} slots`);
+        }
+
+        // Layout preset selection
+        function selectLayout(layoutName) {
+            debugLog('LAYOUT', `SWITCHING TO LAYOUT: ${layoutName}`);
+            
+            AppState.currentLayout = layoutName;
+            
+            // Reset slot count
+            debugLog('LAYOUT', 'Resetting slot count from ' + AppState.layoutConfig.totalSlots + ' to 0');
+            AppState.layoutConfig.totalSlots = 0;
+            
+            switch (layoutName) {
+                case '20x30mm':
+                    AppState.layoutConfig.photoWidth = 20;
+                    AppState.layoutConfig.photoHeight = 30;
+                    break;
+                case '50x30mm':
+                    AppState.layoutConfig.photoWidth = 50;
+                    AppState.layoutConfig.photoHeight = 30;
+                    break;
+                case '55x84mm':
+                    AppState.layoutConfig.photoWidth = 55;
+                    AppState.layoutConfig.photoHeight = 84;
+                    break;
+                case 'custom':
+                    AppState.layoutConfig.photoWidth = parseInt(document.getElementById('customWidth').value) || 50;
+                    AppState.layoutConfig.photoHeight = parseInt(document.getElementById('customHeight').value) || 30;
+                    break;
+            }
+            
+            // Show/hide custom inputs
+            document.getElementById('customLayout').style.display = 
+                layoutName === 'custom' ? 'block' : 'none';
+            
+            calculateLayout();
+        }
+
+        // File upload handling
+        function handleFiles(files) {
+            debugLog('UPLOAD', `Processing ${files.length} files`);
+            
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const photoData = {
+                                id: Date.now() + Math.random(),
+                                name: file.name,
+                                url: e.target.result,
+                                width: img.width,
+                                height: img.height,
+                                size: file.size,
+                                aspectRatio: img.width / img.height
+                            };
+                            
+                            AppState.photos.push(photoData);
+                            debugLog('UPLOAD', `Added photo: ${file.name} (${img.width}×${img.height})`);
+                            
+                            updatePhotoList();
+                            updatePhotoGrid();
+                            updateStatusDisplay();
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Update photo list display
+        function updatePhotoList() {
+            const list = document.getElementById('photoList');
+            
+            if (AppState.photos.length === 0) {
+                list.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No photos uploaded</div>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            AppState.photos.forEach((photo, index) => {
+                const item = document.createElement('div');
+                item.className = 'photo-item';
+                item.innerHTML = `
+                    <img src="${photo.url}" class="photo-thumb" alt="${photo.name}">
+                    <div class="photo-info">
+                        <div class="photo-name">${photo.name}</div>
+                        <div class="photo-meta">${photo.width}×${photo.height} • ${(photo.size/1024).toFixed(1)}KB</div>
+                    </div>
+                    <button onclick="removePhoto(${index})" style="background: #ea4335; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Remove photo
+        function removePhoto(index) {
+            AppState.photos.splice(index, 1);
+            updatePhotoList();
+            updatePhotoGrid();
+            updateStatusDisplay();
+            debugLog('UPLOAD', `Removed photo at index ${index}`);
+        }
+
+        // Clear all photos
+        function clearAllPhotos() {
+            if (confirm('Clear all photos?')) {
+                AppState.photos = [];
+                updatePhotoList();
+                updatePhotoGrid();
+                updateStatusDisplay();
+                debugLog('UPLOAD', 'All photos cleared');
+            }
+        }
+
+        // Zoom functions
+        function zoomIn() {
+            AppState.zoom = Math.min(AppState.zoom + 0.1, 1.5);
+            updateZoom();
+        }
+
+        function zoomOut() {
+            AppState.zoom = Math.max(AppState.zoom - 0.1, 0.3);
+            updateZoom();
+        }
+
+        function fitToView() {
+            AppState.zoom = 0.7;
+            updateZoom();
+        }
+
+        function updateZoom() {
+            const preview = document.getElementById('paperPreview');
+            preview.style.transform = `scale(${AppState.zoom})`;
+            document.getElementById('zoomLevel').textContent = `${Math.round(AppState.zoom * 100)}%`;
+        }
+
+        // Progress modal functions
+        function showProgress(title, text, percent = 0) {
+            const modal = document.getElementById('progressModal');
+            document.getElementById('progressTitle').textContent = title;
+            document.getElementById('progressText').textContent = text;
+            document.getElementById('progressFill').style.width = `${percent}%`;
+            modal.classList.add('active');
+        }
+
+        function updateProgress(text, percent) {
+            document.getElementById('progressText').textContent = text;
+            document.getElementById('progressFill').style.width = `${percent}%`;
+        }
+
+        function hideProgress() {
+            document.getElementById('progressModal').classList.remove('active');
+        }
+
+        // CRITICAL: New export function with proper image loading
+        async function exportLayout() {
+            if (AppState.photos.length === 0) {
+                alert('Please upload photos first!');
+                return;
+            }
+
+            debugLog('EXPORT', 'Starting export process...');
+            showProgress('Exporting Layout', 'Preparing canvas...', 10);
+
+            try {
+                const { dpi, format } = AppState.exportConfig;
+                const mmToPx = dpi / 25.4;
+                
+                const canvasWidth = Math.round(AppState.paperConfig.width * mmToPx);
+                const canvasHeight = Math.round(AppState.paperConfig.height * mmToPx);
+                
+                debugLog('EXPORT', `Canvas size: ${canvasWidth}×${canvasHeight}px at ${dpi}DPI`);
+                
+                // Create high-resolution canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                const ctx = canvas.getContext('2d', { alpha: false });
+                
+                // Verify canvas creation
+                if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+                    throw new Error(`Canvas creation failed: expected ${canvasWidth}×${canvasHeight}, got ${canvas.width}×${canvas.height}`);
+                }
+                
+                debugLog('EXPORT', `Canvas created successfully: ${canvas.width}×${canvas.height}px`);
+                
+                // Fill with white background
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                
+                updateProgress('Loading images...', 30);
+                
+                // CRITICAL FIX: Pre-load all images with validation
+                const loadedImages = await preloadAllImages();
+                debugLog('EXPORT', `Pre-loaded ${loadedImages.length} images`);
+                
+                updateProgress('Rendering photos...', 50);
+                
+                // Render all photos with proper spacing
+                await renderPhotosToCanvas(ctx, loadedImages, mmToPx);
+                
+                updateProgress('Generating file...', 80);
+                
+                // Export with validation
+                await exportCanvasWithValidation(canvas, format);
+                
+                updateProgress('Complete!', 100);
+                debugLog('EXPORT', 'Export completed successfully');
+                
+                setTimeout(hideProgress, 1500);
+
+            } catch (error) {
+                debugLog('EXPORT', `Export failed: ${error.message}`);
+                updateProgress('Error: ' + error.message, 0);
+                setTimeout(hideProgress, 3000);
+            }
+        }
+
+        // Pre-load all images with proper validation
+        async function preloadAllImages() {
+            const maxPhotos = Math.min(AppState.photos.length, AppState.layoutConfig.totalSlots);
+            const loadPromises = [];
+            
+            for (let i = 0; i < maxPhotos; i++) {
+                const photo = AppState.photos[i];
+                const loadPromise = new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        debugLog('EXPORT', `Image loaded: ${photo.name} (${img.width}×${img.height})`);
+                        resolve({ img, photo, index: i });
+                    };
+                    img.onerror = () => {
+                        debugLog('EXPORT', `Failed to load: ${photo.name}`);
+                        reject(new Error(`Failed to load ${photo.name}`));
+                    };
+                    img.crossOrigin = 'anonymous';
+                    img.src = photo.url;
+                });
+                loadPromises.push(loadPromise);
+            }
+            
+            return Promise.all(loadPromises);
+        }
+
+        // Render photos to canvas with proper positioning
+        async function renderPhotosToCanvas(ctx, loadedImages, mmToPx) {
+            const { cols, rows } = AppState.layoutConfig;
+            const { margin, gap } = AppState.paperConfig;
+            const { photoWidth, photoHeight } = AppState.layoutConfig;
+            
+            const startX = margin * mmToPx;
+            const startY = margin * mmToPx;
+            const slotWidth = photoWidth * mmToPx;
+            const slotHeight = photoHeight * mmToPx;
+            const gapPx = gap * mmToPx;
+            
+            debugLog('EXPORT', `Rendering ${loadedImages.length} photos in ${cols}×${rows} grid`);
+            debugLog('EXPORT', `Photo slot size: ${slotWidth.toFixed(1)}×${slotHeight.toFixed(1)}px`);
+            
+            loadedImages.forEach(({ img, photo, index }) => {
+                const col = index % cols;
+                const row = Math.floor(index / cols);
+                
+                const x = startX + col * (slotWidth + gapPx);
+                const y = startY + row * (slotHeight + gapPx);
+                
+                debugLog('EXPORT', `Drawing ${photo.name} at (${x.toFixed(1)}, ${y.toFixed(1)})`);
+                
+                // Calculate aspect-fit positioning
+                const imgAspect = img.width / img.height;
+                const slotAspect = slotWidth / slotHeight;
+                
+                let drawWidth, drawHeight, drawX, drawY;
+                
+                if (imgAspect > slotAspect) {
+                    // Image is wider - fit height
+                    drawHeight = slotHeight;
+                    drawWidth = slotHeight * imgAspect;
+                    drawX = x - (drawWidth - slotWidth) / 2;
+                    drawY = y;
+                } else {
+                    // Image is taller - fit width
+                    drawWidth = slotWidth;
+                    drawHeight = slotWidth / imgAspect;
+                    drawX = x;
+                    drawY = y - (drawHeight - slotHeight) / 2;
+                }
+                
+                // Clip to slot area
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(x, y, slotWidth, slotHeight);
+                ctx.clip();
+                
+                // Draw the image
+                ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+                
+                // Draw border
+                ctx.restore();
+                ctx.strokeStyle = '#007bff';
+                ctx.lineWidth = Math.max(1, slotWidth / 200);
+                ctx.strokeRect(x, y, slotWidth, slotHeight);
+            });
+        }
+
+        // Export canvas with full validation
+        async function exportCanvasWithValidation(canvas, format) {
+            // Validate canvas has content
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, Math.min(100, canvas.width), Math.min(100, canvas.height));
+            const hasContent = imageData.data.some((pixel, index) => {
+                if (index % 4 === 3) return false; // Skip alpha
+                return pixel !== 255; // Not pure white
+            });
+            
+            if (!hasContent) {
+                debugLog('EXPORT', 'WARNING: Canvas appears empty');
+            }
+            
+            const timestamp = new Date().toISOString().slice(0, 16).replace(/[:.]/g, '-');
+            const filename = `photo-layout-${AppState.currentLayout}-${timestamp}.${format}`;
+            
+            if (format === 'pdf') {
+                // PDF export
+                const { jsPDF } = window.jspdf;
+                const orientation = AppState.paperConfig.width > AppState.paperConfig.height ? 'landscape' : 'portrait';
+                
+                const pdf = new jsPDF({
+                    orientation,
+                    unit: 'mm',
+                    format: [AppState.paperConfig.width, AppState.paperConfig.height]
+                });
+                
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                debugLog('EXPORT', `PDF data length: ${imgData.length} chars`);
+                
+                pdf.addImage(imgData, 'JPEG', 0, 0, AppState.paperConfig.width, AppState.paperConfig.height);
+                pdf.save(filename);
+                
+                debugLog('EXPORT', `PDF saved: ${filename}`);
+            } else {
+                // Image export
+                let mimeType, quality;
+                if (format === 'jpg') {
+                    mimeType = 'image/jpeg';
+                    quality = 0.95;
+                } else {
+                    mimeType = 'image/png';
+                    quality = 1.0;
+                }
+                
+                const dataURL = canvas.toDataURL(mimeType, quality);
+                debugLog('EXPORT', `Image data length: ${dataURL.length} chars`);
+                
+                // Validate data URL
+                if (dataURL.length < 2000) {
+                    throw new Error(`Generated file too small: ${dataURL.length} chars`);
+                }
+                
+                // Calculate estimated size
+                const estimatedSize = (dataURL.length * 0.75) / 1024; // KB
+                debugLog('EXPORT', `Estimated file size: ${estimatedSize.toFixed(1)} KB`);
+                
+                // Download
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = dataURL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                debugLog('EXPORT', `Image downloaded: ${filename}`);
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Layout buttons
+            document.querySelectorAll('.layout-button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.layout-button').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    selectLayout(this.dataset.layout);
+                });
+            });
+
+            // Custom layout inputs
+            ['customWidth', 'customHeight'].forEach(id => {
+                document.getElementById(id).addEventListener('input', function() {
+                    if (AppState.currentLayout === 'custom') {
+                        selectLayout('custom');
+                    }
+                });
+            });
+
+            // Paper settings
+            document.getElementById('paperSize').addEventListener('change', function() {
+                if (this.value === 'a4') {
+                    AppState.paperConfig.width = 210;
+                    AppState.paperConfig.height = 297;
+                } else if (this.value === 'a3') {
+                    AppState.paperConfig.width = 297;
+                    AppState.paperConfig.height = 420;
+                }
+                calculateLayout();
+            });
+
+            ['margin', 'gap'].forEach(id => {
+                document.getElementById(id).addEventListener('input', function() {
+                    AppState.paperConfig[id] = parseInt(this.value) || 0;
+                    calculateLayout();
+                });
+            });
+
+            // Export settings
+            document.getElementById('exportDPI').addEventListener('change', function() {
+                AppState.exportConfig.dpi = parseInt(this.value) || 300;
+            });
+
+            document.getElementById('exportFormat').addEventListener('change', function() {
+                AppState.exportConfig.format = this.value || 'jpg';
+            });
+
+            // File upload
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            // Initialize
+            selectLayout('20x30mm');
+            updateZoom();
+            debugLog('INIT', 'Application initialized successfully');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "ultimate-photo-layout",
+  "version": "1.0.0",
+  "description": "Professional photo layout application for print preparation with custom millimeter sizing and high DPI export",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "dev": "serve .",
+    "build": "echo 'Static site - no build needed'"
+  },
+  "keywords": [
+    "photo-layout",
+    "print-design",
+    "canvas-export",
+    "millimeter-sizing",
+    "high-dpi",
+    "vietnamese"
+  ],
+  "author": "Photo Layout Team",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
