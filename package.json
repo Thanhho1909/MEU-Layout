@@ -1,20 +1,5 @@
 {
   "name": "meu-layout",
   "version": "1.0.0",
-  "description": "MEU Layout - Professional photo layout application for print preparation",
-  "main": "index.html",
-  "scripts": {
-    "build": "echo 'Static site ready in public directory'",
-    "start": "echo 'Visit the deployed site'",
-    "dev": "vercel dev"
-  },
-  "keywords": [
-    "photo-layout",
-    "print-design", 
-    "meu-layout",
-    "canvas-export",
-    "vietnamese"
-  ],
-  "author": "MEU Layout Team",
-  "license": "MIT"
+  "private": true
 }
