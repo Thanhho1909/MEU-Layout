@@ -4,8 +4,8 @@
   "description": "MEU Layout - Professional photo layout application for print preparation",
   "main": "index.html",
   "scripts": {
-    "build": "echo 'Build complete - static site ready'",
-    "start": "echo 'Static site - use vercel dev for local development'",
+    "build": "echo 'Static site ready in public directory'",
+    "start": "echo 'Visit the deployed site'",
     "dev": "vercel dev"
   },
   "keywords": [
