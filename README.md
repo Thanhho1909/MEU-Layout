@@ -1,4 +1,4 @@
-# 🎯 Ultimate Photo Layout
+# 🎯 MEU Layout - Ultimate Photo Layout
 
 Professional photo layout application for print preparation with advanced features including custom millimeter sizing, high DPI export, and intelligent aspect ratio handling.
 
@@ -46,7 +46,7 @@ This version specifically addresses:
 
 ## 🌟 Live Demo
 
-Visit the live application: [https://your-vercel-app.vercel.app](https://your-vercel-app.vercel.app)
+Visit the live application: [https://meu-layout.vercel.app](https://meu-layout.vercel.app)
 
 ## 🚀 Development
 
