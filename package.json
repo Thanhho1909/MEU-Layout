@@ -1,0 +1,16 @@
+{
+  "name": "meu-layout-tool",
+  "version": "1.0.0",
+  "description": "Internal image processing tool",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "build": "echo 'No build process needed' && exit 0"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir)",
+      "Bash(python:*)",
+      "Bash(npx http-server:*)",
+      "Bash(grep:*)",
+      "Bash(node:*)",
+      "Bash(start \"\" \"E:\\MEU Layout\\MEULayout.html\")",
+      "Bash(sed:*)",
+      "Bash(start \"\" \"MEULayout.html\")",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(start \"\" \"E:\\MEU Layout\\template_clean.html\")",
+      "Bash(start \"\" \"E:\\MEU Layout\\template_new_layout.html\")",
+      "Bash(powershell:*)",
+      "Bash(npx vercel:*)",
+      "Read(//c/Users/ACER/Pictures/Screenshots/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
