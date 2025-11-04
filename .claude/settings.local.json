@@ -19,7 +19,10 @@
       "Bash(start \"\" \"http://127.0.0.1:8080/MEULayout.html\")",
       "Bash(git log:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\n🧹 Cleanup: Remove old files and update layout\n\n- Xóa các file ảnh cũ trong thư mục Cropped/ và Polaroid_\n- Xóa các bản sao HTML không còn sử dụng\n- Cập nhật MEULayout.html với các cải tiến mới\n- Thêm thư mục TEMPLATE/ cho các mẫu mới\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\n🧹 Cleanup: Remove old files and update layout\n\n- Xóa các file ảnh cũ trong thư mục Cropped/ và Polaroid_\n- Xóa các bản sao HTML không còn sử dụng\n- Cập nhật MEULayout.html với các cải tiến mới\n- Thêm thư mục TEMPLATE/ cho các mẫu mới\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\n🐛 Fix: Sửa lỗi load template và instant_fix.js\n\n- Sửa đường dẫn template với URL encoding cho khoảng trắng\n- Thêm type=\"text/javascript\" cho instant_fix.js\n- Khắc phục lỗi \"Failed to load overlay template\"\n- Khắc phục lỗi \"Uncaught SyntaxError\" trong instant_fix.js\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
