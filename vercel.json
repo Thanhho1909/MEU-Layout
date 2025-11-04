@@ -8,6 +8,10 @@
     {
       "src": "*.js",
       "use": "@vercel/static"
+    },
+    {
+      "src": "TEMPLATE/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
