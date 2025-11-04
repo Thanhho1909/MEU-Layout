@@ -7,6 +7,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <!-- PDF.js for PDF to Image conversion with maximum quality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Cấu hình PDF.js worker để đảm bảo hiệu suất tối ưu
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -9980,6 +9988,145 @@
             color: #6c757d;
         }
 
+        /* Template Type Selection */
+        .template-type-selection {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .template-type-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 12px;
+        }
+
+        .template-type-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .template-type-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .template-type-card:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: translateY(-1px);
+        }
+
+        .template-type-card.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+        .template-type-card input[type="radio"] {
+            display: none;
+        }
+
+        .template-type-card .type-icon {
+            font-size: 1.5rem;
+        }
+
+        .template-type-card .type-info {
+            flex: 1;
+        }
+
+        .template-type-card .type-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 2px;
+        }
+
+        .template-type-card .type-desc {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        /* Art Template Selection */
+        .polaroid2-only-section {
+            transition: all 0.3s ease;
+        }
+
+        .art-template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .art-template-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .art-template-card:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: translateY(-2px);
+        }
+
+        .art-template-card.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .art-template-card input[type="radio"] {
+            display: none;
+        }
+
+        .art-template-card .art-preview {
+            width: 80px;
+            height: 100px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+
+        .art-template-card .art-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .art-template-card .art-preview-placeholder {
+            font-size: 2rem;
+        }
+
+        .art-template-card .art-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #495057;
+            text-align: center;
+        }
+
         .template-size-details {
             margin-bottom: 20px;
         }
@@ -10414,6 +10561,128 @@
             font-size: 0.9rem;
         }
 
+        /* Quick Size Selection Grid */
+        .quick-sizes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .size-preset-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 8px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 60px;
+            position: relative;
+        }
+
+        .size-preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .size-preset-btn .size-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #374151;
+            margin-bottom: 2px;
+        }
+
+        .size-preset-btn .size-desc {
+            font-size: 0.7rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .size-preset-btn.active {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+        }
+
+        /* Màu sắc phân biệt cho từng kích thước Polaroid */
+        .size-preset-btn[data-width="5.5"][data-height="8.5"] {
+            border-left: 5px solid #ef4444;
+            background: linear-gradient(to right, #fef2f2, #ffffff);
+        }
+
+        .size-preset-btn[data-width="4"][data-height="6"] {
+            border-left: 5px solid #10b981;
+            background: linear-gradient(to right, #f0fdf4, #ffffff);
+        }
+
+        .size-preset-btn[data-width="5"][data-height="7"] {
+            border-left: 5px solid #3b82f6;
+            background: linear-gradient(to right, #eff6ff, #ffffff);
+        }
+
+        .size-preset-btn[data-width="6"][data-height="9"] {
+            border-left: 5px solid #8b5cf6;
+            background: linear-gradient(to right, #f5f3ff, #ffffff);
+        }
+
+        .size-preset-btn[data-width="8"][data-height="10"] {
+            border-left: 5px solid #ec4899;
+            background: linear-gradient(to right, #fdf2f8, #ffffff);
+        }
+
+        .size-preset-btn[data-width="8.5"][data-height="11"] {
+            border-left: 5px solid #f59e0b;
+            background: linear-gradient(to right, #fffbeb, #ffffff);
+        }
+
+        /* Màu sắc khi hover */
+        .size-preset-btn[data-width="5.5"][data-height="8.5"]:hover,
+        .size-preset-btn[data-width="5.5"][data-height="8.5"].active {
+            border-color: #ef4444;
+            background: linear-gradient(to right, #fee2e2, #fef2f2);
+        }
+
+        .size-preset-btn[data-width="4"][data-height="6"]:hover,
+        .size-preset-btn[data-width="4"][data-height="6"].active {
+            border-color: #10b981;
+            background: linear-gradient(to right, #d1fae5, #f0fdf4);
+        }
+
+        .size-preset-btn[data-width="5"][data-height="7"]:hover,
+        .size-preset-btn[data-width="5"][data-height="7"].active {
+            border-color: #3b82f6;
+            background: linear-gradient(to right, #dbeafe, #eff6ff);
+        }
+
+        .size-preset-btn[data-width="6"][data-height="9"]:hover,
+        .size-preset-btn[data-width="6"][data-height="9"].active {
+            border-color: #8b5cf6;
+            background: linear-gradient(to right, #ede9fe, #f5f3ff);
+        }
+
+        .size-preset-btn[data-width="8"][data-height="10"]:hover,
+        .size-preset-btn[data-width="8"][data-height="10"].active {
+            border-color: #ec4899;
+            background: linear-gradient(to right, #fce7f3, #fdf2f8);
+        }
+
+        .size-preset-btn[data-width="8.5"][data-height="11"]:hover,
+        .size-preset-btn[data-width="8.5"][data-height="11"].active {
+            border-color: #f59e0b;
+            background: linear-gradient(to right, #fef3c7, #fffbeb);
+        }
+
+        /* Responsive grid */
+        @media (max-width: 768px) {
+            .quick-sizes-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+        }
+
         .compact-btn.secondary {
             background: #f1f5f9;
             color: #374151;
@@ -10453,6 +10722,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             min-height: 500px;
+            align-items: start;
         }
 
         .polaroid-preview-section {
@@ -10539,6 +10809,118 @@
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
             border-radius: 12px;
             border: 1px solid #e2e8f0;
+            min-height: 300px;
+            overflow: visible;
+        }
+
+        .polaroid-frame {
+            position: relative;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            max-width: 100%;
+        }
+
+        /* Polaroid 2 overlay mode - hide decorative frame */
+        .polaroid-frame.template-overlay-mode {
+            background: transparent;
+            box-shadow: none;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+        }
+
+        .polaroid-image-area {
+            position: relative;
+            width: 100%;
+            max-width: 280px; /* Larger max width for better preview */
+            height: auto;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible; /* Show full template */
+            margin: 0 auto; /* Center preview */
+        }
+
+        .polaroid-image-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .template-frame-preview {
+            position: relative;
+            width: 100%;
+            height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .template-frame-preview img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .image-preview-result {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .placeholder-text {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .polaroid-caption-area {
+            padding: 8px;
+            text-align: center;
+            background: white;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Hide caption area in overlay mode */
+        .polaroid-frame.template-overlay-mode .polaroid-caption-area {
+            display: none;
+        }
+
+        /* Remove size constraints for overlay mode */
+        .polaroid-frame.template-overlay-mode .polaroid-image-area {
+            max-width: none;
+            width: auto;
+            height: auto;
+            background: transparent;
+            display: block;
+            overflow: visible;
+        }
+
+        /* Ensure template images display at full size with proper scaling */
+        .polaroid-frame.template-overlay-mode .template-frame-preview,
+        .polaroid-frame.template-overlay-mode .image-preview-result {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .polaroid-frame.template-overlay-mode .template-frame-preview img,
+        .polaroid-frame.template-overlay-mode .image-preview-result {
+            width: auto;
+            height: auto;
+            max-height: 450px;
+            /* Size scales based on aspect ratio */
+        }
+
+        .caption-placeholder {
+            color: #9ca3af;
+            font-size: 0.75rem;
+            font-style: italic;
         }
 
         .compact-upload-zone {
@@ -11440,8 +11822,9 @@
         }
 
         .polaroid-frame {
-            width: 280px;
-            height: 380px;
+            width: auto;
+            max-width: 100%;
+            height: auto;
             background: white;
             border: 3px solid #f1f5f9;
             border-radius: 12px;
@@ -11449,6 +11832,16 @@
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             position: relative;
+            display: inline-block;
+        }
+
+        /* Polaroid 2 overlay mode - override decorative frame */
+        .polaroid-frame.template-overlay-mode {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
         }
 
         .polaroid-frame::before {
@@ -15963,6 +16356,7 @@
                                 <div class="supported-formats">
                                     <span class="format-label">▸ Hỗ trợ:</span>
                                     <div class="format-list">
+                                        <span class="format-item">PDF</span>
                                         <span class="format-item">PNG</span>
                                         <span class="format-item">JPG</span>
                                         <span class="format-item">WEBP</span>
@@ -16037,16 +16431,45 @@
                                     </label>
                                     <select id="outputFormat" class="control-select">
                                         <option value="auto">◯ Tự động (Khuyến nghị)</option>
-                                        <option value="jpeg" selected>◯ JPG (Nén tốt)</option>
-                                        <option value="png">◯ PNG (Trong suốt)</option>
+                                        <option value="png" selected>◯ PNG (Lossless - Không mất chất lượng)</option>
+                                        <option value="jpeg">◯ JPG (Có nén nhẹ - File nhỏ hơn)</option>
                                         <option value="webp">◯ WebP (Hiện đại)</option>
-                                        <option value="bmp">◯ BMP (Không nén)</option>
+                                        <option value="bmp">◯ BMP (Không nén - File rất lớn)</option>
                                     </select>
                                 </div>
 
                                 <!-- Chất lượng được set mặc định 100% tối đa, không thể thay đổi để đảm bảo chất lượng cao tuyệt đối từ file gốc -->
                                 <!-- Quality control hidden - always set to maximum for perfect quality preservation -->
                                 <input type="hidden" id="quality" value="100">
+
+                                <!-- PDF Conversion Settings - Hiển thị khi có file PDF -->
+                                <div class="control-item" id="pdfSettingsContainer" style="display: none;">
+                                    <label class="control-label">
+                                        <span class="label-indicator">▸</span>
+                                        Cài đặt PDF
+                                    </label>
+                                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                                        <select id="pdfPageSelection" class="control-select">
+                                            <option value="all" selected>◯ Tất cả trang</option>
+                                            <option value="first">◯ Chỉ trang đầu</option>
+                                            <option value="range">◯ Khoảng trang</option>
+                                        </select>
+                                        <input type="text" id="pdfPageRange" class="prefix-input" placeholder="VD: 1-5, 7, 9-12" style="display: none;">
+                                        <select id="pdfDPI" class="control-select">
+                                            <option value="300" selected>◯ 300 DPI - Chất lượng in ấn (Khuyến nghị)</option>
+                                            <option value="600">◯ 600 DPI - Chất lượng cao</option>
+                                            <option value="150">◯ 150 DPI - Web/Màn hình</option>
+                                            <option value="72">◯ 72 DPI - Xem nhanh (Nhỏ nhất)</option>
+                                        </select>
+                                        <div style="margin-top: 8px; padding: 8px; background: #f0f9ff; border-left: 3px solid #0284c7; font-size: 12px; line-height: 1.5;">
+                                            <strong>💎 Hướng dẫn chọn DPI:</strong><br>
+                                            • <strong>300 DPI</strong>: Đủ cho in ấn văn phòng, file ~15-30MB<br>
+                                            • <strong>600 DPI</strong>: Chất lượng cao, file ~60-120MB<br>
+                                            • <strong>150 DPI</strong>: Xem trên màn hình, file ~5-10MB<br>
+                                            • <strong>Luôn chọn PNG</strong> để không mất chất lượng!
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div class="control-item">
                                     <label class="control-label">
@@ -16989,7 +17412,10 @@
                                     <div class="polaroid-preview-container">
                                         <div class="polaroid-frame">
                                             <div class="polaroid-image-area" id="polaroidImageArea">
-                                                <div class="placeholder-text">Chờ ảnh...</div>
+                                                <div class="template-frame-preview" id="templateFramePreview" style="display: none;">
+                                                    <img id="templateFrameImg" src="" alt="Template preview" style="width: 100%; height: 100%; object-fit: contain;">
+                                                </div>
+                                                <div class="placeholder-text" id="placeholderText">Chọn khung và upload ảnh...</div>
                                             </div>
                                             <div class="polaroid-caption-area">
                                                 <div class="caption-placeholder">Viền Polaroid</div>
@@ -17028,7 +17454,85 @@
                                         <!-- Layout & Dimensions Tab - CHỈ kích thước & bố cục -->
                                         <div class="tab-content active" data-tab="layout">
                                             <div class="settings-section">
+                                                <div class="section-title">🎨 Loại Template</div>
+
+                                                <!-- Template Type Selection -->
+                                                <div class="template-type-options">
+                                                    <label class="template-type-card active">
+                                                        <input type="radio" name="polaroidTemplateType" value="type1" checked>
+                                                        <div class="type-icon">📐</div>
+                                                        <div class="type-info">
+                                                            <div class="type-name">Polaroid 1</div>
+                                                            <div class="type-desc">Chuẩn</div>
+                                                        </div>
+                                                    </label>
+                                                    <label class="template-type-card">
+                                                        <input type="radio" name="polaroidTemplateType" value="type2">
+                                                        <div class="type-icon">🖼️</div>
+                                                        <div class="type-info">
+                                                            <div class="type-name">Polaroid 2</div>
+                                                            <div class="type-desc">Mới</div>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <!-- Art Template Selection (Only for Polaroid 2) -->
+                                            <div class="settings-section polaroid2-only-section" style="display: none;">
+                                                <div class="section-title">🎨 Chọn Khung Art</div>
+                                                <div class="art-template-grid">
+                                                    <label class="art-template-card active">
+                                                        <input type="radio" name="artTemplateType" value="default" checked>
+                                                        <div class="art-preview">
+                                                            <img src="TEMPLATE/TEMPLATE Polaroid 6 x 9 cm.png" alt="Trơn">
+                                                        </div>
+                                                        <div class="art-name">Trơn</div>
+                                                    </label>
+                                                    <label class="art-template-card">
+                                                        <input type="radio" name="artTemplateType" value="6x9-art-music">
+                                                        <div class="art-preview">
+                                                            <img src="TEMPLATE/Polaroid_6x9cm_Cunamnhac.png" alt="Cún âm nhạc">
+                                                        </div>
+                                                        <div class="art-name">Cún âm nhạc</div>
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div class="settings-section">
                                                 <div class="section-title">■ Kích thước Polaroid</div>
+
+                                                <!-- Quick Size Selection Buttons -->
+                                                <div class="quick-sizes-grid">
+                                                    <button class="size-preset-btn active" data-width="5.5" data-height="8.5">
+                                                        <span class="size-name">5.5×8.5</span>
+                                                        <span class="size-desc">Chuẩn</span>
+                                                    </button>
+                                                    <button class="size-preset-btn" data-width="4" data-height="6">
+                                                        <span class="size-name">4×6</span>
+                                                        <span class="size-desc">4R</span>
+                                                    </button>
+                                                    <button class="size-preset-btn" data-width="5" data-height="7">
+                                                        <span class="size-name">5×7</span>
+                                                        <span class="size-desc">5R</span>
+                                                    </button>
+                                                    <button class="size-preset-btn" data-width="6" data-height="9">
+                                                        <span class="size-name">6×9</span>
+                                                        <span class="size-desc">6R</span>
+                                                    </button>
+                                                    <button class="size-preset-btn" data-width="7" data-height="10">
+                                                        <span class="size-name">7×10</span>
+                                                        <span class="size-desc">7R</span>
+                                                    </button>
+                                                    <button class="size-preset-btn" data-width="8" data-height="10">
+                                                        <span class="size-name">8×10</span>
+                                                        <span class="size-desc">8R</span>
+                                                    </button>
+                                                    <button class="size-preset-btn" data-width="8.5" data-height="11">
+                                                        <span class="size-name">8.5×11</span>
+                                                        <span class="size-desc">Letter</span>
+                                                    </button>
+                                                </div>
+
                                                 <div class="setting-row">
                                                     <label>Kích thước (cm)</label>
                                                     <div class="size-inputs">
@@ -17691,21 +18195,42 @@
                                 <div class="preset-icon">📸</div>
                                 <div class="preset-content">
                                     <div class="preset-name">5.5×8.5 cm</div>
-                                    <div class="preset-desc">A4 dọc, ảnh 5.5×8.5cm, lề 10mm</div>
+                                    <div class="preset-desc">A4 dọc, ảnh 5.5×8.5cm, lề 5mm</div>
                                 </div>
                             </button>
                             <button class="preset-card" data-preset="standard-6x9">
                                 <div class="preset-icon">🆔</div>
                                 <div class="preset-content">
                                     <div class="preset-name">6×9 cm</div>
-                                    <div class="preset-desc">A4 dọc, ảnh 6×9cm, lề 15mm</div>
+                                    <div class="preset-desc">A4 dọc, ảnh 6×9cm, lề 5mm</div>
                                 </div>
                             </button>
                             <button class="preset-card" data-preset="standard-7x10">
                                 <div class="preset-icon">📷</div>
                                 <div class="preset-content">
                                     <div class="preset-name">7×10 cm</div>
-                                    <div class="preset-desc">A4 dọc, ảnh 7×10cm, lề 10mm</div>
+                                    <div class="preset-desc">A4 dọc, ảnh 7×10cm, lề 5mm</div>
+                                </div>
+                            </button>
+                            <button class="preset-card" data-preset="paper-10x15">
+                                <div class="preset-icon">🖼️</div>
+                                <div class="preset-content">
+                                    <div class="preset-name">10×15 cm</div>
+                                    <div class="preset-desc">Giấy 10×15cm, ảnh 10×15cm, lề 5mm</div>
+                                </div>
+                            </button>
+                            <button class="preset-card" data-preset="paper-a6">
+                                <div class="preset-icon">📄</div>
+                                <div class="preset-content">
+                                    <div class="preset-name">A6</div>
+                                    <div class="preset-desc">Giấy A6 (10.5×14.8cm), lề 5mm</div>
+                                </div>
+                            </button>
+                            <button class="preset-card" data-preset="paper-a5">
+                                <div class="preset-icon">📋</div>
+                                <div class="preset-content">
+                                    <div class="preset-name">A5</div>
+                                    <div class="preset-desc">Giấy A5 (14.8×21cm), lề 5mm</div>
                                 </div>
                             </button>
                             <button class="preset-card" data-preset="custom">
@@ -20275,16 +20800,94 @@
             transition: all 0.2s ease;
             flex: 1;
         }
-        
+
         .size-option-minimal:hover {
             border-color: #3b82f6;
             background: #f8fafc;
         }
-        
+
         .size-option-minimal.active {
             border-color: #3b82f6;
             background: #eff6ff;
             box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Màu sắc phân biệt cho size-option-minimal */
+        .size-option-minimal[data-size="5.5x8.5"] {
+            border-left: 4px solid #ef4444;
+            background: linear-gradient(to right, #fef2f2, #ffffff);
+        }
+
+        .size-option-minimal[data-size="8.5x11"] {
+            border-left: 4px solid #f59e0b;
+            background: linear-gradient(to right, #fffbeb, #ffffff);
+        }
+
+        .size-option-minimal[data-size="4x6"] {
+            border-left: 4px solid #10b981;
+            background: linear-gradient(to right, #f0fdf4, #ffffff);
+        }
+
+        .size-option-minimal[data-size="5x7"] {
+            border-left: 4px solid #3b82f6;
+            background: linear-gradient(to right, #eff6ff, #ffffff);
+        }
+
+        .size-option-minimal[data-size="6x9"] {
+            border-left: 4px solid #8b5cf6;
+            background: linear-gradient(to right, #f5f3ff, #ffffff);
+        }
+
+        .size-option-minimal[data-size="8x10"] {
+            border-left: 4px solid #ec4899;
+            background: linear-gradient(to right, #fdf2f8, #ffffff);
+        }
+
+        .size-option-minimal[data-size="custom"] {
+            border-left: 4px solid #64748b;
+            background: linear-gradient(to right, #f8fafc, #ffffff);
+        }
+
+        .size-option-minimal[data-size="5.5x8.5"]:hover,
+        .size-option-minimal[data-size="5.5x8.5"].active {
+            border-color: #ef4444;
+            background: linear-gradient(to right, #fee2e2, #fef2f2);
+        }
+
+        .size-option-minimal[data-size="8.5x11"]:hover,
+        .size-option-minimal[data-size="8.5x11"].active {
+            border-color: #f59e0b;
+            background: linear-gradient(to right, #fef3c7, #fffbeb);
+        }
+
+        .size-option-minimal[data-size="4x6"]:hover,
+        .size-option-minimal[data-size="4x6"].active {
+            border-color: #10b981;
+            background: linear-gradient(to right, #d1fae5, #f0fdf4);
+        }
+
+        .size-option-minimal[data-size="5x7"]:hover,
+        .size-option-minimal[data-size="5x7"].active {
+            border-color: #3b82f6;
+            background: linear-gradient(to right, #dbeafe, #eff6ff);
+        }
+
+        .size-option-minimal[data-size="6x9"]:hover,
+        .size-option-minimal[data-size="6x9"].active {
+            border-color: #8b5cf6;
+            background: linear-gradient(to right, #ede9fe, #f5f3ff);
+        }
+
+        .size-option-minimal[data-size="8x10"]:hover,
+        .size-option-minimal[data-size="8x10"].active {
+            border-color: #ec4899;
+            background: linear-gradient(to right, #fce7f3, #fdf2f8);
+        }
+
+        .size-option-minimal[data-size="custom"]:hover,
+        .size-option-minimal[data-size="custom"].active {
+            border-color: #64748b;
+            background: linear-gradient(to right, #e2e8f0, #f8fafc);
         }
         
         .size-label {
@@ -20318,17 +20921,95 @@
             transition: all 0.2s ease;
             text-align: center;
         }
-        
+
         .size-card-minimal:hover {
             border-color: #3b82f6;
             background: #f8fafc;
             transform: translateY(-1px);
         }
-        
+
         .size-card-minimal.active {
             border-color: #3b82f6;
             background: #eff6ff;
             box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Màu sắc phân biệt cho từng kích thước */
+        .size-card-minimal[data-size="5.5x8.5"] {
+            border-left: 4px solid #ef4444;
+            background: linear-gradient(to right, #fef2f2, #ffffff);
+        }
+
+        .size-card-minimal[data-size="8.5x11"] {
+            border-left: 4px solid #f59e0b;
+            background: linear-gradient(to right, #fffbeb, #ffffff);
+        }
+
+        .size-card-minimal[data-size="4x6"] {
+            border-left: 4px solid #10b981;
+            background: linear-gradient(to right, #f0fdf4, #ffffff);
+        }
+
+        .size-card-minimal[data-size="5x7"] {
+            border-left: 4px solid #3b82f6;
+            background: linear-gradient(to right, #eff6ff, #ffffff);
+        }
+
+        .size-card-minimal[data-size="6x9"] {
+            border-left: 4px solid #8b5cf6;
+            background: linear-gradient(to right, #f5f3ff, #ffffff);
+        }
+
+        .size-card-minimal[data-size="8x10"] {
+            border-left: 4px solid #ec4899;
+            background: linear-gradient(to right, #fdf2f8, #ffffff);
+        }
+
+        .size-card-minimal[data-size="custom"] {
+            border-left: 4px solid #64748b;
+            background: linear-gradient(to right, #f8fafc, #ffffff);
+        }
+
+        .size-card-minimal[data-size="5.5x8.5"]:hover,
+        .size-card-minimal[data-size="5.5x8.5"].active {
+            border-color: #ef4444;
+            background: linear-gradient(to right, #fee2e2, #fef2f2);
+        }
+
+        .size-card-minimal[data-size="8.5x11"]:hover,
+        .size-card-minimal[data-size="8.5x11"].active {
+            border-color: #f59e0b;
+            background: linear-gradient(to right, #fef3c7, #fffbeb);
+        }
+
+        .size-card-minimal[data-size="4x6"]:hover,
+        .size-card-minimal[data-size="4x6"].active {
+            border-color: #10b981;
+            background: linear-gradient(to right, #d1fae5, #f0fdf4);
+        }
+
+        .size-card-minimal[data-size="5x7"]:hover,
+        .size-card-minimal[data-size="5x7"].active {
+            border-color: #3b82f6;
+            background: linear-gradient(to right, #dbeafe, #eff6ff);
+        }
+
+        .size-card-minimal[data-size="6x9"]:hover,
+        .size-card-minimal[data-size="6x9"].active {
+            border-color: #8b5cf6;
+            background: linear-gradient(to right, #ede9fe, #f5f3ff);
+        }
+
+        .size-card-minimal[data-size="8x10"]:hover,
+        .size-card-minimal[data-size="8x10"].active {
+            border-color: #ec4899;
+            background: linear-gradient(to right, #fce7f3, #fdf2f8);
+        }
+
+        .size-card-minimal[data-size="custom"]:hover,
+        .size-card-minimal[data-size="custom"].active {
+            border-color: #64748b;
+            background: linear-gradient(to right, #e2e8f0, #f8fafc);
         }
         
         .size-preview-minimal {
@@ -20511,16 +21192,94 @@
             flex-direction: column;
             justify-content: center;
         }
-        
+
         .size-card-compact:hover {
             border-color: var(--primary-blue);
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         .size-card-compact.active {
             border-color: var(--primary-blue);
             background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Màu sắc phân biệt cho size-card-compact */
+        .size-card-compact[data-size="5.5x8.5"] {
+            border-top: 4px solid #ef4444;
+            background: linear-gradient(to bottom, #fef2f2, #ffffff);
+        }
+
+        .size-card-compact[data-size="8.5x11"] {
+            border-top: 4px solid #f59e0b;
+            background: linear-gradient(to bottom, #fffbeb, #ffffff);
+        }
+
+        .size-card-compact[data-size="4x6"] {
+            border-top: 4px solid #10b981;
+            background: linear-gradient(to bottom, #f0fdf4, #ffffff);
+        }
+
+        .size-card-compact[data-size="5x7"] {
+            border-top: 4px solid #3b82f6;
+            background: linear-gradient(to bottom, #eff6ff, #ffffff);
+        }
+
+        .size-card-compact[data-size="6x9"] {
+            border-top: 4px solid #8b5cf6;
+            background: linear-gradient(to bottom, #f5f3ff, #ffffff);
+        }
+
+        .size-card-compact[data-size="8x10"] {
+            border-top: 4px solid #ec4899;
+            background: linear-gradient(to bottom, #fdf2f8, #ffffff);
+        }
+
+        .size-card-compact[data-size="custom"] {
+            border-top: 4px solid #64748b;
+            background: linear-gradient(to bottom, #f8fafc, #ffffff);
+        }
+
+        .size-card-compact[data-size="5.5x8.5"]:hover,
+        .size-card-compact[data-size="5.5x8.5"].active {
+            border-color: #ef4444;
+            background: linear-gradient(to bottom, #fee2e2, #fef2f2);
+        }
+
+        .size-card-compact[data-size="8.5x11"]:hover,
+        .size-card-compact[data-size="8.5x11"].active {
+            border-color: #f59e0b;
+            background: linear-gradient(to bottom, #fef3c7, #fffbeb);
+        }
+
+        .size-card-compact[data-size="4x6"]:hover,
+        .size-card-compact[data-size="4x6"].active {
+            border-color: #10b981;
+            background: linear-gradient(to bottom, #d1fae5, #f0fdf4);
+        }
+
+        .size-card-compact[data-size="5x7"]:hover,
+        .size-card-compact[data-size="5x7"].active {
+            border-color: #3b82f6;
+            background: linear-gradient(to bottom, #dbeafe, #eff6ff);
+        }
+
+        .size-card-compact[data-size="6x9"]:hover,
+        .size-card-compact[data-size="6x9"].active {
+            border-color: #8b5cf6;
+            background: linear-gradient(to bottom, #ede9fe, #f5f3ff);
+        }
+
+        .size-card-compact[data-size="8x10"]:hover,
+        .size-card-compact[data-size="8x10"].active {
+            border-color: #ec4899;
+            background: linear-gradient(to bottom, #fce7f3, #fdf2f8);
+        }
+
+        .size-card-compact[data-size="custom"]:hover,
+        .size-card-compact[data-size="custom"].active {
+            border-color: #64748b;
+            background: linear-gradient(to bottom, #e2e8f0, #f8fafc);
         }
         
         .size-preview-compact {
@@ -21649,6 +22408,30 @@
                     <!-- Template Configuration Section -->
                     <div class="template-section template-config-section">
                         <h3>📐 Cấu hình Template</h3>
+
+                        <!-- Template Type Selection -->
+                        <div class="template-type-selection">
+                            <label class="template-type-label">🎨 Loại Template:</label>
+                            <div class="template-type-options">
+                                <label class="template-type-card active">
+                                    <input type="radio" name="polaroidTemplateType" value="type1" checked>
+                                    <div class="type-icon">📐</div>
+                                    <div class="type-info">
+                                        <div class="type-name">Polaroid 1</div>
+                                        <div class="type-desc">Chuẩn</div>
+                                    </div>
+                                </label>
+                                <label class="template-type-card">
+                                    <input type="radio" name="polaroidTemplateType" value="type2">
+                                    <div class="type-icon">🖼️</div>
+                                    <div class="type-info">
+                                        <div class="type-name">Polaroid 2</div>
+                                        <div class="type-desc">Mới</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="template-size-details">
                             <div class="detail-item">
                                 <span class="detail-label">Kích thước:</span>
@@ -23420,13 +24203,27 @@
                 // Naming options
                 const namingSelect = document.getElementById('namingOption');
                 const customPrefix = document.getElementById('customPrefix');
-                
+
                 if (namingSelect && customPrefix) {
                     this.safeAddEventListener(namingSelect, 'change', (e) => {
                         if (e.target.value === 'custom') {
                             customPrefix.style.display = 'inline-block';
                         } else {
                             customPrefix.style.display = 'none';
+                        }
+                    });
+                }
+
+                // PDF Settings - Hiển thị input range khi chọn "Khoảng trang"
+                const pdfPageSelection = document.getElementById('pdfPageSelection');
+                const pdfPageRange = document.getElementById('pdfPageRange');
+
+                if (pdfPageSelection && pdfPageRange) {
+                    this.safeAddEventListener(pdfPageSelection, 'change', (e) => {
+                        if (e.target.value === 'range') {
+                            pdfPageRange.style.display = 'block';
+                        } else {
+                            pdfPageRange.style.display = 'none';
                         }
                     });
                 }
@@ -24381,13 +25178,19 @@
 
             async validateImageFile(file) {
                 console.log('Validating file:', file.name, 'MIME type:', file.type);
-                
+
+                // Check for PDF files - Hỗ trợ chuyển đổi PDF sang JPG/PNG
+                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                    console.log('File is PDF - will be converted to images:', file.name);
+                    return true;
+                }
+
                 // First check MIME type (for files with correct extensions)
                 if (file.type && file.type.startsWith('image/')) {
                     console.log('File passed MIME type validation:', file.type);
                     return true;
                 }
-                
+
                 // Also accept files with common image extensions even without MIME type
                 const fileName = file.name.toLowerCase();
                 const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff', '.tif', '.heic', '.heif'];
@@ -24609,6 +25412,180 @@
                 });
             }
 
+            // Chuyển đổi PDF sang ảnh với chất lượng hoàn hảo
+            async convertPDFToImages(file) {
+                try {
+                    console.log('🔄 Bắt đầu chuyển đổi PDF:', file.name);
+
+                    // Kiểm tra PDF.js đã load chưa
+                    if (typeof pdfjsLib === 'undefined') {
+                        throw new Error('Thư viện PDF.js chưa được tải. Vui lòng tải lại trang.');
+                    }
+
+                    // Đọc file PDF
+                    const arrayBuffer = await file.arrayBuffer();
+                    const loadingTask = pdfjsLib.getDocument({data: arrayBuffer});
+                    const pdf = await loadingTask.promise;
+
+                    const totalPages = pdf.numPages;
+                    console.log(`📄 PDF có ${totalPages} trang`);
+
+                    // Lấy cài đặt từ UI
+                    const pageSelection = document.getElementById('pdfPageSelection')?.value || 'all';
+                    const dpi = parseInt(document.getElementById('pdfDPI')?.value || '300');
+                    const scale = dpi / 72; // PDF mặc định là 72 DPI
+
+                    console.log(`🎯 Cài đặt: DPI=${dpi}, Scale=${scale.toFixed(2)}`);
+
+                    // Xác định trang nào cần chuyển đổi
+                    let pagesToConvert = [];
+                    if (pageSelection === 'first') {
+                        pagesToConvert = [1];
+                    } else if (pageSelection === 'range') {
+                        const rangeInput = document.getElementById('pdfPageRange')?.value || '';
+                        pagesToConvert = this.parsePDFPageRange(rangeInput, totalPages);
+                    } else {
+                        // Tất cả trang
+                        pagesToConvert = Array.from({length: totalPages}, (_, i) => i + 1);
+                    }
+
+                    console.log(`🎯 Sẽ chuyển đổi ${pagesToConvert.length} trang:`, pagesToConvert);
+
+                    // Chuyển đổi từng trang
+                    const convertedImages = [];
+                    for (const pageNum of pagesToConvert) {
+                        try {
+                            const page = await pdf.getPage(pageNum);
+
+                            // Lấy thông tin trang PDF gốc
+                            const viewport = page.getViewport({ scale: 1.0 });
+                            const pageWidthInches = viewport.width / 72;
+                            const pageHeightInches = viewport.height / 72;
+
+                            console.log(`📐 Trang ${pageNum}: ${pageWidthInches.toFixed(2)}" × ${pageHeightInches.toFixed(2)}" (${viewport.width}×${viewport.height} pts)`);
+
+                            // Tính toán kích thước canvas dựa trên DPI
+                            const targetWidth = Math.floor(pageWidthInches * dpi);
+                            const targetHeight = Math.floor(pageHeightInches * dpi);
+
+                            console.log(`🎯 Kích thước mục tiêu: ${targetWidth}×${targetHeight}px @ ${dpi} DPI`);
+
+                            // Tạo canvas với kích thước chính xác
+                            const canvas = document.createElement('canvas');
+                            canvas.width = targetWidth;
+                            canvas.height = targetHeight;
+
+                            const context = canvas.getContext('2d', {
+                                alpha: false,
+                                willReadFrequently: false
+                            });
+
+                            // Tính scale để đạt được kích thước mục tiêu
+                            const renderScale = targetWidth / viewport.width;
+                            const renderViewport = page.getViewport({ scale: renderScale });
+
+                            console.log(`🔧 Render scale: ${renderScale.toFixed(4)} | Viewport: ${renderViewport.width}×${renderViewport.height}px`);
+
+                            // Không smoothing để giữ text sắc nét
+                            context.imageSmoothingEnabled = false;
+
+                            // Render PDF
+                            const renderContext = {
+                                canvasContext: context,
+                                viewport: renderViewport,
+                                intent: 'print'
+                            };
+
+                            console.log(`⏳ Đang render trang ${pageNum}...`);
+                            await page.render(renderContext).promise;
+                            console.log(`✅ Render xong trang ${pageNum}`);
+
+                            // Chuyển canvas sang blob với chất lượng TUYỆT ĐỐI
+                            const outputFormat = document.getElementById('outputFormat')?.value || 'png';
+                            let mimeType = 'image/png'; // MẶC ĐỊNH PNG cho lossless
+                            let quality = 1.0;
+
+                            if (outputFormat === 'png') {
+                                mimeType = 'image/png'; // PNG = LOSSLESS 100%
+                                // PNG không có quality parameter - luôn lossless
+                            } else if (outputFormat === 'jpeg' || outputFormat === 'jpg') {
+                                mimeType = 'image/jpeg';
+                                quality = 1.0; // JPEG quality 100% (vẫn có nén nhẹ)
+                            } else if (outputFormat === 'webp') {
+                                mimeType = 'image/webp';
+                                quality = 1.0; // WebP quality 100%
+                            }
+
+                            const blob = await new Promise(resolve => {
+                                if (mimeType === 'image/png') {
+                                    // PNG không cần quality parameter - luôn lossless
+                                    canvas.toBlob(resolve, mimeType);
+                                } else {
+                                    // JPEG/WebP với quality tối đa
+                                    canvas.toBlob(resolve, mimeType, quality);
+                                }
+                            });
+
+                            // Tạo tên file cho trang
+                            const baseName = file.name.replace(/\.pdf$/i, '');
+                            const pageSuffix = totalPages > 1 ? `_page${pageNum}` : '';
+                            const extension = outputFormat === 'jpeg' ? 'jpg' : outputFormat;
+                            const fileName = `${baseName}${pageSuffix}.${extension}`;
+
+                            convertedImages.push({
+                                blob: blob,
+                                fileName: fileName,
+                                width: canvas.width,
+                                height: canvas.height,
+                                pageNum: pageNum
+                            });
+
+                            const actualDPI = Math.round((canvas.width / pageWidthInches));
+                            const fileSizeMB = (blob.size / 1024 / 1024).toFixed(2);
+                            console.log(`✅ Hoàn thành trang ${pageNum}/${totalPages}:`);
+                            console.log(`   📏 Kích thước: ${canvas.width}×${canvas.height}px`);
+                            console.log(`   🎯 DPI thực tế: ${actualDPI}`);
+                            console.log(`   💾 Dung lượng: ${fileSizeMB}MB`);
+
+                        } catch (pageError) {
+                            console.error(`❌ Lỗi khi chuyển đổi trang ${pageNum}:`, pageError);
+                        }
+                    }
+
+                    console.log(`🎉 Hoàn thành chuyển đổi PDF: ${convertedImages.length} ảnh`);
+                    return convertedImages;
+
+                } catch (error) {
+                    console.error('❌ Lỗi chuyển đổi PDF:', error);
+                    throw error;
+                }
+            }
+
+            // Parse PDF page range string (VD: "1-5, 7, 9-12")
+            parsePDFPageRange(rangeStr, maxPages) {
+                const pages = new Set();
+                const parts = rangeStr.split(',').map(s => s.trim());
+
+                for (const part of parts) {
+                    if (part.includes('-')) {
+                        // Range: "1-5"
+                        const [start, end] = part.split('-').map(s => parseInt(s.trim()));
+                        if (isNaN(start) || isNaN(end)) continue;
+                        for (let i = Math.max(1, start); i <= Math.min(maxPages, end); i++) {
+                            pages.add(i);
+                        }
+                    } else {
+                        // Single page: "7"
+                        const page = parseInt(part);
+                        if (!isNaN(page) && page >= 1 && page <= maxPages) {
+                            pages.add(page);
+                        }
+                    }
+                }
+
+                return Array.from(pages).sort((a, b) => a - b);
+            }
+
             // Detect original image format from file signature
             detectOriginalFormat(file) {
                 // Check file extension first for HEIC/HEIF
@@ -24814,31 +25791,88 @@
                     for (let index = 0; index < validFiles.length; index++) {
                         const fileInfo = validFiles[index];
                         const file = fileInfo.file;
-                        
+
                         // Calculate actual file index in total files (not just valid files)
                         const totalFileIndex = files.findIndex(f => f.name === file.name);
-                        
-                        this.updateSingleUploadProgress(file.name, 'Phân tích chất lượng...', totalFileIndex, 80);
-                        
-                        // Analyze image quality
-                        const qualityAnalysis = await this.analyzeImageQuality(file);
-                        
-                        this.updateSingleUploadProgress(file.name, '✅ Hoàn thành', totalFileIndex, 100);
-                        
-                        const fileData = {
-                            id: `file_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`, // Unique ID
-                            file: file,
-                            name: file.name,
-                            size: file.size,
-                            status: 'pending',
-                            convertedBlob: null,
-                            convertedName: null,
-                            isImageFile: true,
-                            hash: fileInfo.hash,
-                            originalIndex: this.files.length + index, // Track order
-                            qualityAnalysis: qualityAnalysis // Store quality analysis
-                        };
-                        this.files.push(fileData);
+
+                        // Kiểm tra nếu là file PDF - chuyển đổi sang ảnh
+                        const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+                        if (isPDF) {
+                            this.updateSingleUploadProgress(file.name, '📄 Đang chuyển đổi PDF...', totalFileIndex, 50);
+
+                            try {
+                                const convertedImages = await this.convertPDFToImages(file);
+
+                                // Thêm từng ảnh đã chuyển đổi từ PDF
+                                for (let pdfImgIndex = 0; pdfImgIndex < convertedImages.length; pdfImgIndex++) {
+                                    const pdfImage = convertedImages[pdfImgIndex];
+
+                                    // Tạo File object từ blob để phân tích chất lượng
+                                    const imageFile = new File([pdfImage.blob], pdfImage.fileName, { type: pdfImage.blob.type });
+
+                                    const fileData = {
+                                        id: `file_${Date.now()}_${index}_${pdfImgIndex}_${Math.random().toString(36).substr(2, 9)}`,
+                                        file: imageFile,
+                                        name: pdfImage.fileName,
+                                        size: pdfImage.blob.size,
+                                        status: 'success', // Đã chuyển đổi xong
+                                        convertedBlob: pdfImage.blob,
+                                        convertedName: pdfImage.fileName,
+                                        isImageFile: true,
+                                        isPDFConverted: true,
+                                        pdfSourceName: file.name,
+                                        pdfPageNum: pdfImage.pageNum,
+                                        hash: fileInfo.hash + '_page' + pdfImage.pageNum,
+                                        originalIndex: this.files.length + index,
+                                        qualityAnalysis: {
+                                            width: pdfImage.width,
+                                            height: pdfImage.height,
+                                            totalPixels: pdfImage.width * pdfImage.height,
+                                            fileSize: pdfImage.blob.size,
+                                            format: pdfImage.blob.type.split('/')[1],
+                                            hasTransparency: false,
+                                            colorComplexity: 12,
+                                            compressionArtifacts: 0,
+                                            qualityScore: 100,
+                                            recommendedFormat: pdfImage.blob.type.split('/')[1]
+                                        }
+                                    };
+                                    this.files.push(fileData);
+                                }
+
+                                this.updateSingleUploadProgress(file.name, `✅ Đã chuyển ${convertedImages.length} trang`, totalFileIndex, 100);
+
+                            } catch (pdfError) {
+                                console.error('Lỗi chuyển đổi PDF:', pdfError);
+                                this.updateSingleUploadProgress(file.name, '❌ Lỗi chuyển đổi PDF', totalFileIndex, 100);
+                                this.showToast(`Lỗi chuyển đổi PDF: ${file.name}`, 'error');
+                            }
+
+                        } else {
+                            // File ảnh thông thường
+                            this.updateSingleUploadProgress(file.name, 'Phân tích chất lượng...', totalFileIndex, 80);
+
+                            // Analyze image quality
+                            const qualityAnalysis = await this.analyzeImageQuality(file);
+
+                            this.updateSingleUploadProgress(file.name, '✅ Hoàn thành', totalFileIndex, 100);
+
+                            const fileData = {
+                                id: `file_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`, // Unique ID
+                                file: file,
+                                name: file.name,
+                                size: file.size,
+                                status: 'pending',
+                                convertedBlob: null,
+                                convertedName: null,
+                                isImageFile: true,
+                                hash: fileInfo.hash,
+                                originalIndex: this.files.length + index, // Track order
+                                qualityAnalysis: qualityAnalysis // Store quality analysis
+                            };
+                            this.files.push(fileData);
+                        }
                     }
 
                     this.renderFileList();
@@ -26658,6 +27692,18 @@
                 const hasPendingFiles = allFiles.some(f => f.status === 'pending');
                 const hasSuccessFiles = allFiles.some(f => f.status === 'success');
                 const hasFiles = allFiles.length > 0;
+
+                // Kiểm tra xem có file PDF nào trong danh sách không
+                const hasPDFFiles = allFiles.some(f => {
+                    const fileName = f.name || f.file?.name || '';
+                    return fileName.toLowerCase().endsWith('.pdf') || f.file?.type === 'application/pdf';
+                });
+
+                // Hiển thị/ẩn PDF settings container
+                const pdfSettingsContainer = document.getElementById('pdfSettingsContainer');
+                if (pdfSettingsContainer) {
+                    pdfSettingsContainer.style.display = hasPDFFiles ? 'block' : 'none';
+                }
 
                 document.getElementById('convertAllBtn').disabled = !hasPendingFiles;
                 document.getElementById('bulkActions').style.display = hasFiles ? 'flex' : 'none';
@@ -34085,7 +35131,7 @@
                     config: {
                         paperSize: { width: 210, height: 297 }, // A4 in mm
                         photoSize: { width: 5.5, height: 8.5 }, // in cm
-                        margins: { top: 10, bottom: 10, left: 10, right: 10 }, // in mm
+                        margins: { top: 5, bottom: 5, left: 5, right: 5 }, // in mm
                         gutter: { x: 5, y: 5 }, // in mm
                         dpi: 300,
                         orientation: 'portrait',
@@ -36250,56 +37296,75 @@
         }
 
         calculateLayoutForOrientation(availableWidth, availableHeight, photoW, photoH, gutter) {
-            // Advanced layout optimization algorithm
-            
-            // Method 1: Standard grid calculation
-            let cols = Math.floor(availableWidth / photoW);
-            let rows = Math.floor(availableHeight / photoH);
-            
-            // Ensure at least 1 photo fits
+            // Thuật toán tối ưu hóa layout - CÔNG THỨC CHÍNH XÁC
+            // Số lượng = floor((khoảng_trống + gutter) / (kích_thước_ảnh + gutter))
+            // Ví dụ: ảnh 6x9cm trên A4 dọc có thể dàn 3x3 = 9 ảnh
+
+            // Method 1: Tính toán chuẩn với gutter hiện tại
+            let cols = Math.floor((availableWidth + gutter.x) / (photoW + gutter.x));
+            let rows = Math.floor((availableHeight + gutter.y) / (photoH + gutter.y));
+
+            // Đảm bảo ít nhất 1 ảnh vừa
             cols = Math.max(1, cols);
             rows = Math.max(1, rows);
-            
-            // Method 2: Try with minimal gutters (1mm minimum)
-            const minGutter = 1; // 1mm minimum
+
+            // Method 2: Thử với gutter tối thiểu 1mm
+            const minGutter = 1;
             let cols2 = Math.floor((availableWidth + minGutter) / (photoW + minGutter));
             let rows2 = Math.floor((availableHeight + minGutter) / (photoH + minGutter));
             cols2 = Math.max(1, cols2);
             rows2 = Math.max(1, rows2);
-            
-            // Method 3: Try tight packing with 0.5mm gutter
+
+            // Method 3: Thử với gutter siêu chặt 0.5mm
             const tightGutter = 0.5;
             let cols3 = Math.floor((availableWidth + tightGutter) / (photoW + tightGutter));
             let rows3 = Math.floor((availableHeight + tightGutter) / (photoH + tightGutter));
             cols3 = Math.max(1, cols3);
             rows3 = Math.max(1, rows3);
-            
-            // Choose the method that gives most photos
+
+            // Method 4: Thử không có gutter (dàn sát nhau) - tối đa hóa số ảnh
+            let cols4 = Math.floor(availableWidth / photoW);
+            let rows4 = Math.floor(availableHeight / photoH);
+            cols4 = Math.max(1, cols4);
+            rows4 = Math.max(1, rows4);
+
+            // So sánh tất cả các phương pháp
             const layouts = [
                 { cols: cols, rows: rows, photos: cols * rows, gutterX: gutter.x, gutterY: gutter.y },
                 { cols: cols2, rows: rows2, photos: cols2 * rows2, gutterX: minGutter, gutterY: minGutter },
-                { cols: cols3, rows: rows3, photos: cols3 * rows3, gutterX: tightGutter, gutterY: tightGutter }
+                { cols: cols3, rows: rows3, photos: cols3 * rows3, gutterX: tightGutter, gutterY: tightGutter },
+                { cols: cols4, rows: rows4, photos: cols4 * rows4, gutterX: 0, gutterY: 0 }
             ];
-            
-            // Find best layout
-            const bestLayout = layouts.reduce((best, current) => 
+
+            // Chọn layout có nhiều ảnh nhất
+            const bestLayout = layouts.reduce((best, current) =>
                 current.photos > best.photos ? current : best
             );
-            
+
             const finalCols = bestLayout.cols;
             const finalRows = bestLayout.rows;
-            
+
+            // Log chi tiết các phương pháp tính toán
+            console.log('🔍 Layout calculation details:');
+            console.log(`   Available: ${availableWidth.toFixed(1)} × ${availableHeight.toFixed(1)} mm`);
+            console.log(`   Photo: ${photoW} × ${photoH} mm`);
+            console.log(`   Method 1 (current gutter ${gutter.x}×${gutter.y}mm): ${cols}×${rows} = ${cols*rows} ảnh`);
+            console.log(`   Method 2 (min gutter 1mm): ${cols2}×${rows2} = ${cols2*rows2} ảnh`);
+            console.log(`   Method 3 (tight 0.5mm): ${cols3}×${rows3} = ${cols3*rows3} ảnh`);
+            console.log(`   Method 4 (no gutter): ${cols4}×${rows4} = ${cols4*rows4} ảnh`);
+            console.log(`   ✅ Best: ${finalCols}×${finalRows} = ${finalCols*finalRows} ảnh`);
+
             // Calculate actual spacing for chosen layout
             let actualGutterX = bestLayout.gutterX;
             let actualGutterY = bestLayout.gutterY;
-            
+
             // If we have extra space, distribute it evenly
             if (finalCols > 1) {
                 const totalPhotoWidth = finalCols * photoW;
                 const availableGutterSpace = availableWidth - totalPhotoWidth;
                 actualGutterX = Math.max(0.5, availableGutterSpace / (finalCols - 1));
             }
-            
+
             if (finalRows > 1) {
                 const totalPhotoHeight = finalRows * photoH;
                 const availableGutterSpace = availableHeight - totalPhotoHeight;
@@ -38108,12 +39173,45 @@
         // Template Polaroid functionality
         initializeTemplateMode() {
             console.log('🔧 Initializing Template Mode...');
-            
+
+            // Define Polaroid 2 template configurations for different sizes
+            this.polaroid2Templates = {
+                '5.5x8.5': {
+                    name: 'Trơn 5.5×8.5',
+                    overlayPath: 'TEMPLATE/TEMPLATE Polaroid 5.5 x 8.5 cm.png',
+                    canvasSize: { width: 650, height: 1004 },
+                    imageArea: { x: 36, y: 63, width: 576, height: 785 }
+                },
+                '6x9': {
+                    name: 'Trơn 6×9',
+                    overlayPath: 'TEMPLATE/TEMPLATE Polaroid 6 x 9 cm.png',
+                    canvasSize: { width: 709, height: 1063 },
+                    imageArea: { x: 45, y: 64, width: 614, height: 831 }
+                },
+                '7x10': {
+                    name: 'Trơn 7×10',
+                    overlayPath: 'TEMPLATE/Polaroid_7x10cm.png',
+                    canvasSize: { width: 827, height: 1181 },
+                    imageArea: { x: 50, y: 64, width: 725, height: 915 }
+                },
+                '6x9-art-music': {
+                    name: 'Cún âm nhạc 6×9',
+                    overlayPath: 'TEMPLATE/Polaroid_6x9cm_Cunamnhac.png',
+                    canvasSize: { width: 709, height: 1063 },
+                    imageArea: { x: 54, y: 72, width: 602, height: 777 },
+                    isArt: true // Mark as art template
+                }
+            };
+
+            // Current selected art template key
+            this.currentArtTemplate = null;
+
             // Initialize template data with configuration
             this.templateData = {
                 images: [],
                 currentIndex: 0,
                 config: {
+                    templateType: 'type1', // 'type1' (Polaroid 1 - Chuẩn) or 'type2' (Polaroid 2 - Mới)
                     dpi: 300,
                     polaroidSizeCm: { width: 5.5, height: 8.5 },
                     border: {
@@ -38126,6 +39224,8 @@
                     safeAreaPx: 0,
                     bgColor: '#FFFFFF',
                     overlayFrame: false,
+                    overlayPath: null,
+                    imageArea: null, // For Polaroid 2: {x, y, width, height}
                     caption: {
                         text: '',
                         fontFamily: 'Arial',
@@ -38143,6 +39243,7 @@
             // Update UI
             this.updateTemplateUI();
             this.updateTemplateSpecs();
+            this.updateTemplateUIVisibility(); // Set initial UI state
         }
 
         setupTemplateEventListeners() {
@@ -38338,17 +39439,329 @@
         updateQuickSpecs() {
             const quickSpecs = document.getElementById('quickSpecs');
             if (!quickSpecs) return;
-            
+
             const config = this.templateData.config;
             const dimensions = this.calculatePolaroidDimensions();
-            
+
             if (dimensions.isValid && config) {
                 const aspectRatio = (config.polaroidSizeCm.width / config.polaroidSizeCm.height).toFixed(2);
                 quickSpecs.textContent = `${config.polaroidSizeCm.width}×${config.polaroidSizeCm.height}cm • ${config.dpi} DPI • 1:${aspectRatio}`;
             }
         }
 
+        // Get Polaroid 2 template config based on current size and art selection
+        getPolaroid2TemplateConfig() {
+            // If art template is selected, use it
+            if (this.currentArtTemplate && this.polaroid2Templates[this.currentArtTemplate]) {
+                return this.polaroid2Templates[this.currentArtTemplate];
+            }
+
+            // Otherwise, use default template for current size
+            const size = this.templateData.config.polaroidSizeCm;
+            const sizeKey = `${size.width}x${size.height}`;
+
+            // Check if we have a template for this size
+            if (this.polaroid2Templates[sizeKey]) {
+                return this.polaroid2Templates[sizeKey];
+            }
+
+            // Default to 5.5x8.5 if size not found
+            console.warn(`No Polaroid 2 template for size ${sizeKey}, using default 5.5x8.5`);
+            return this.polaroid2Templates['5.5x8.5'];
+        }
+
+        // Update Polaroid 2 config when size changes
+        updatePolaroid2Config() {
+            if (this.templateData.config.templateType !== 'type2') return;
+
+            const templateConfig = this.getPolaroid2TemplateConfig();
+            this.templateData.config.overlayFrame = true; // Enable overlay mode
+            this.templateData.config.overlayPath = templateConfig.overlayPath;
+            this.templateData.config.imageArea = templateConfig.imageArea;
+
+            console.log(`📐 Updated Polaroid 2 template:`, templateConfig);
+        }
+
+        // Show template frame preview
+        showTemplateFramePreview() {
+            const isPolaroid2 = this.templateData.config.templateType === 'type2';
+            const hasImages = this.templateData?.images?.length > 0;
+
+            const framePreview = document.getElementById('templateFramePreview');
+            const frameImg = document.getElementById('templateFrameImg');
+            const placeholder = document.getElementById('placeholderText');
+            const polaroidFrame = document.querySelector('.polaroid-frame');
+
+            // Toggle class for Polaroid 2 to hide decorative frame
+            // Polaroid 2 always uses overlay mode (with or without images)
+            if (polaroidFrame) {
+                if (isPolaroid2) {
+                    polaroidFrame.classList.add('template-overlay-mode');
+                } else {
+                    polaroidFrame.classList.remove('template-overlay-mode');
+                }
+            }
+
+            if (!framePreview || !frameImg || !placeholder) return;
+
+            // If Polaroid 2 and no images yet, show template preview
+            if (isPolaroid2 && !hasImages) {
+                const templateConfig = this.getPolaroid2TemplateConfig();
+                if (templateConfig && templateConfig.overlayPath) {
+                    frameImg.src = templateConfig.overlayPath;
+
+                    // Scale preview based on actual size ratio
+                    const baseHeight = 300; // Base height for 5.5x8.5
+                    const actualRatio = templateConfig.canvasSize.height / 1004; // 1004 is 5.5x8.5 height
+                    const previewHeight = baseHeight * actualRatio;
+
+                    frameImg.style.height = `${previewHeight}px`;
+                    frameImg.style.width = 'auto';
+
+                    framePreview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    console.log(`📸 Showing template preview: ${templateConfig.name} (${previewHeight}px)`);
+                    return;
+                }
+            }
+
+            // Hide template preview if has images or Polaroid 1
+            if (hasImages) {
+                framePreview.style.display = 'none';
+                placeholder.style.display = 'none';
+            } else {
+                framePreview.style.display = 'none';
+                placeholder.style.display = 'block';
+                placeholder.textContent = isPolaroid2 ? 'Upload ảnh vào khung...' : 'Chọn khung và upload ảnh...';
+            }
+        }
+
+        // Update UI visibility based on template type
+        updateTemplateUIVisibility() {
+            const isPolaroid2 = this.templateData.config.templateType === 'type2';
+            const isArtTemplate = this.currentArtTemplate !== null;
+
+            // Show/hide art template selection
+            const artSection = document.querySelector('.polaroid2-only-section');
+            if (artSection) {
+                artSection.style.display = isPolaroid2 ? 'block' : 'none';
+            }
+
+            // Check if "Trơn" template is available for current size
+            if (isPolaroid2 && !isArtTemplate) {
+                // For "Trơn" template, only show supported sizes
+                const size = this.templateData.config.polaroidSizeCm;
+                const sizeKey = `${size.width}x${size.height}`;
+                const hasPlainTemplate = this.polaroid2Templates[sizeKey] !== undefined;
+
+                // Disable/enable size buttons based on availability
+                const sizeButtons = document.querySelectorAll('.size-preset-btn');
+                sizeButtons.forEach(btn => {
+                    const btnWidth = parseFloat(btn.dataset.width);
+                    const btnHeight = parseFloat(btn.dataset.height);
+                    const btnSizeKey = `${btnWidth}x${btnHeight}`;
+                    const hasSizeTemplate = this.polaroid2Templates[btnSizeKey] !== undefined;
+
+                    if (!hasSizeTemplate) {
+                        btn.style.opacity = '0.5';
+                        btn.style.pointerEvents = 'none';
+                        btn.title = 'Template trơn chỉ hỗ trợ 5.5×8.5cm và 6×9cm';
+                    } else {
+                        btn.style.opacity = '1';
+                        btn.style.pointerEvents = 'auto';
+                        btn.title = '';
+                    }
+                });
+
+                // Also disable manual size inputs if current size not supported
+                const plainCard = document.querySelector('.art-template-card input[value="default"]')?.closest('.art-template-card');
+                if (plainCard && !hasPlainTemplate) {
+                    // Auto-switch to art template if currently on "Trơn"
+                    const artInput = document.querySelector('.art-template-card input[value="6x9-art-music"]');
+                    if (artInput) {
+                        artInput.checked = true;
+                        artInput.closest('.art-template-card').classList.add('active');
+                        plainCard.classList.remove('active');
+                        this.currentArtTemplate = '6x9-art-music';
+                        this.updatePolaroid2Config();
+                    }
+                }
+            } else {
+                // For Polaroid 1 or art templates, enable all size buttons
+                const sizeButtons = document.querySelectorAll('.size-preset-btn');
+                sizeButtons.forEach(btn => {
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                    btn.title = '';
+                });
+            }
+
+            // Show template frame preview
+            this.showTemplateFramePreview();
+
+            // Hide size controls when Art template is selected (fixed size, cannot change)
+            const allSections = document.querySelectorAll('.settings-section');
+            allSections.forEach(section => {
+                const title = section.querySelector('.section-title');
+                if (title && title.textContent.includes('Kích thước Polaroid')) {
+                    // Hide size section for art templates (they have fixed size)
+                    section.style.display = isArtTemplate ? 'none' : 'block';
+                }
+            });
+
+            // Find all sections that should be hidden for Polaroid 2
+            const bgColorControl = document.getElementById('templateBgColor')?.closest('.setting-row');
+            const safeAreaControl = document.getElementById('templateSafeArea')?.closest('.setting-row');
+            const overlayControl = document.getElementById('templateOverlay')?.closest('.setting-row');
+
+            // Hide/show border controls (viền)
+            const borderItems = document.querySelectorAll('.border-item');
+            borderItems.forEach(item => {
+                if (isPolaroid2) {
+                    item.style.opacity = '0.5';
+                    item.style.pointerEvents = 'none';
+                    const inputs = item.querySelectorAll('input');
+                    inputs.forEach(input => input.disabled = true);
+                } else {
+                    item.style.opacity = '1';
+                    item.style.pointerEvents = 'auto';
+                    const inputs = item.querySelectorAll('input');
+                    inputs.forEach(input => input.disabled = false);
+                }
+            });
+
+            // Hide/show size input controls (Polaroid 2 only supports specific sizes)
+            const sizeInputs = document.querySelectorAll('#templateWidth, #templateHeight');
+            sizeInputs.forEach(input => {
+                if (isPolaroid2) {
+                    input.style.opacity = '0.5';
+                    input.disabled = true;
+                } else {
+                    input.style.opacity = '1';
+                    input.disabled = false;
+                }
+            });
+
+            // Hide/show other controls
+            if (bgColorControl) {
+                bgColorControl.style.display = isPolaroid2 ? 'none' : 'flex';
+            }
+            if (safeAreaControl) {
+                safeAreaControl.style.display = isPolaroid2 ? 'none' : 'flex';
+            }
+            if (overlayControl) {
+                overlayControl.style.display = isPolaroid2 ? 'none' : 'flex';
+            }
+
+            // Add helpful message for Polaroid 2
+            const borderGrid = document.querySelector('.border-grid');
+            if (borderGrid) {
+                let messageDiv = borderGrid.querySelector('.polaroid2-message');
+                if (isPolaroid2) {
+                    if (!messageDiv) {
+                        messageDiv = document.createElement('div');
+                        messageDiv.className = 'polaroid2-message';
+                        messageDiv.style.cssText = `
+                            grid-column: 1/-1;
+                            padding: 12px;
+                            background: #fffbeb;
+                            border: 1px solid #fbbf24;
+                            border-radius: 6px;
+                            color: #92400e;
+                            font-size: 0.85rem;
+                            text-align: center;
+                            margin-top: 10px;
+                        `;
+                        messageDiv.innerHTML = `
+                            <strong>ℹ️ Polaroid 2:</strong> Viền cố định theo template PNG.
+                            Chỉ có thể điều chỉnh zoom/pan ảnh bên trong.
+                        `;
+                        borderGrid.appendChild(messageDiv);
+                    }
+                } else {
+                    if (messageDiv) {
+                        messageDiv.remove();
+                    }
+                }
+            }
+
+            console.log(`🎨 UI updated for ${isPolaroid2 ? 'Polaroid 2' : 'Polaroid 1'}`);
+        }
+
         setupTemplateConfigListeners() {
+            // Art Template Selection (for Polaroid 2)
+            const artTemplateCards = document.querySelectorAll('.art-template-card');
+            artTemplateCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    // Remove active class from all cards
+                    artTemplateCards.forEach(c => c.classList.remove('active'));
+                    // Add active class to clicked card
+                    card.classList.add('active');
+
+                    // Get art template type from radio input
+                    const radio = card.querySelector('input[type="radio"]');
+                    const artType = radio.value;
+
+                    // Update current art template
+                    this.currentArtTemplate = artType === 'default' ? null : artType;
+
+                    // Update Polaroid 2 config with selected art template
+                    if (this.templateData.config.templateType === 'type2') {
+                        this.updatePolaroid2Config();
+                        this.reprocessAllTemplateImages();
+                        this.updateTemplateSpecs();
+                        this.updateTemplateUIVisibility(); // Update preview
+                    }
+
+                    console.log(`🎨 Art template changed to: ${artType}`);
+                });
+            });
+
+            // Template Type Selection (Polaroid 1 vs Polaroid 2)
+            const templateTypeCards = document.querySelectorAll('.template-type-card');
+            templateTypeCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    // Remove active class from all cards
+                    templateTypeCards.forEach(c => c.classList.remove('active'));
+                    // Add active class to clicked card
+                    card.classList.add('active');
+
+                    // Get template type from radio input
+                    const radio = card.querySelector('input[type="radio"]');
+                    const templateType = radio.value;
+
+                    // Update template configuration
+                    this.templateData.config.templateType = templateType;
+
+                    // Update template overlay path and coordinates
+                    if (templateType === 'type2') {
+                        // Polaroid 2 - New template with overlay
+                        this.templateData.config.overlayFrame = true;
+                        // Get template config based on current size
+                        const templateConfig = this.getPolaroid2TemplateConfig();
+                        this.templateData.config.overlayPath = templateConfig.overlayPath;
+                        this.templateData.config.imageArea = templateConfig.imageArea;
+                        console.log('🖼️ Đã chuyển sang Polaroid 2 (Mới) - Overlay mode');
+                        console.log('📐 Template config:', templateConfig);
+                    } else {
+                        // Polaroid 1 - Standard template with borders
+                        this.templateData.config.overlayFrame = false;
+                        this.templateData.config.overlayPath = null;
+                        this.templateData.config.imageArea = null;
+                        console.log('📐 Đã chuyển sang Polaroid 1 (Chuẩn) - Border mode');
+                    }
+
+                    // Reprocess all images with new template
+                    this.reprocessAllTemplateImages();
+                    this.updateTemplateSpecs();
+
+                    // Update UI visibility based on template type
+                    this.updateTemplateUIVisibility();
+
+                    console.log(`✅ Template type changed to: ${templateType}`);
+                });
+            });
+
             // DPI and size controls
             const templateDPI = document.getElementById('templateDPI');
             const templateWidth = document.getElementById('templateWidth');
@@ -38373,20 +39786,54 @@
             if (templateWidth) {
                 templateWidth.addEventListener('input', (e) => {
                     this.templateData.config.polaroidSizeCm.width = parseFloat(e.target.value);
+                    this.updatePolaroid2Config(); // Update Polaroid 2 template if needed
                     this.updateTemplateSpecs();
                     this.updateQuickSpecs();
                     this.reprocessAllTemplateImages();
+                    this.showTemplateFramePreview(); // Update preview
                 });
             }
 
             if (templateHeight) {
                 templateHeight.addEventListener('input', (e) => {
                     this.templateData.config.polaroidSizeCm.height = parseFloat(e.target.value);
+                    this.updatePolaroid2Config(); // Update Polaroid 2 template if needed
                     this.updateTemplateSpecs();
                     this.updateQuickSpecs();
                     this.reprocessAllTemplateImages();
+                    this.showTemplateFramePreview(); // Update preview
                 });
             }
+
+            // Quick Size Preset Buttons
+            const sizePresetButtons = document.querySelectorAll('.size-preset-btn');
+            sizePresetButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    sizePresetButtons.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    btn.classList.add('active');
+
+                    // Get size from data attributes
+                    const width = parseFloat(btn.dataset.width);
+                    const height = parseFloat(btn.dataset.height);
+
+                    // Update config and inputs
+                    this.templateData.config.polaroidSizeCm.width = width;
+                    this.templateData.config.polaroidSizeCm.height = height;
+
+                    if (templateWidth) templateWidth.value = width;
+                    if (templateHeight) templateHeight.value = height;
+
+                    this.updatePolaroid2Config(); // Update Polaroid 2 template if needed
+                    this.updateTemplateSpecs();
+                    this.updateQuickSpecs();
+                    this.reprocessAllTemplateImages();
+                    this.showTemplateFramePreview(); // Update preview
+
+                    console.log(`📐 Đã chọn kích thước: ${width}×${height} cm`);
+                });
+            });
 
             // Border controls - sliders sync with number inputs
             this.setupBorderControls();
@@ -38401,6 +39848,7 @@
                 templateFitMode.addEventListener('change', (e) => {
                     this.templateData.config.fitMode = e.target.value;
                     this.reprocessAllTemplateImages();
+                    this.updateTemplatePreview();
                 });
             }
 
@@ -38409,6 +39857,7 @@
                     this.templateData.config.safeAreaPx = parseInt(e.target.value);
                     this.updateTemplateSpecs();
                     this.reprocessAllTemplateImages();
+                    this.updateTemplatePreview();
                 });
             }
 
@@ -38416,6 +39865,7 @@
                 templateBgColor.addEventListener('change', (e) => {
                     this.templateData.config.bgColor = e.target.value;
                     this.reprocessAllTemplateImages();
+                    this.updateTemplatePreview();
                 });
             }
 
@@ -38423,6 +39873,7 @@
                 templateOverlay.addEventListener('change', (e) => {
                     this.templateData.config.overlayFrame = e.target.checked;
                     this.reprocessAllTemplateImages();
+                    this.updateTemplatePreview();
                 });
             }
 
@@ -38450,6 +39901,7 @@
                         this.templateData.config.border[control.key] = value;
                         this.updateTemplateSpecs();
                         this.reprocessAllTemplateImages();
+                        this.updateTemplatePreview(); // Update main preview
                     });
 
                     // Sync number input to slider
@@ -38459,6 +39911,7 @@
                         this.templateData.config.border[control.key] = value;
                         this.updateTemplateSpecs();
                         this.reprocessAllTemplateImages();
+                        this.updateTemplatePreview(); // Update main preview
                     });
                 }
             });
@@ -38476,6 +39929,7 @@
                 captionText.addEventListener('input', (e) => {
                     this.templateData.config.caption.text = e.target.value;
                     this.reprocessAllTemplateImages();
+                    this.updateTemplatePreview();
                 });
             }
 
@@ -38483,6 +39937,7 @@
                 captionFont.addEventListener('change', (e) => {
                     this.templateData.config.caption.fontFamily = e.target.value;
                     this.reprocessAllTemplateImages();
+                    this.updateTemplatePreview();
                 });
             }
 
@@ -38490,6 +39945,7 @@
                 captionFontSize.addEventListener('input', (e) => {
                     this.templateData.config.caption.fontSizePx = parseInt(e.target.value);
                     this.reprocessAllTemplateImages();
+                    this.updateTemplatePreview();
                 });
             }
 
@@ -38497,6 +39953,7 @@
                 captionColor.addEventListener('change', (e) => {
                     this.templateData.config.caption.color = e.target.value;
                     this.reprocessAllTemplateImages();
+                    this.updateTemplatePreview();
                 });
             }
 
@@ -38504,6 +39961,7 @@
                 captionAlign.addEventListener('change', (e) => {
                     this.templateData.config.caption.align = e.target.value;
                     this.reprocessAllTemplateImages();
+                    this.updateTemplatePreview();
                 });
             }
 
@@ -38511,6 +39969,7 @@
                 captionMarginTop.addEventListener('input', (e) => {
                     this.templateData.config.caption.marginTopPx = parseInt(e.target.value);
                     this.reprocessAllTemplateImages();
+                    this.updateTemplatePreview();
                 });
             }
         }
@@ -38549,16 +40008,29 @@
         updateTemplateSpecs() {
             const dimensions = this.calculatePolaroidDimensions();
             const config = this.templateData.config;
-            
+
             // Update crop modal specs if open
             this.updateTemplateCropModalSpecs();
-            
+
             const specsDisplay = document.getElementById('currentSpecsDisplay');
             if (!specsDisplay) return;
 
-            // Convert pixels to cm for image area display (300 DPI)
-            const imageAreaCmW = (dimensions.safeImageW / 300 * 2.54).toFixed(2);
-            const imageAreaCmH = (dimensions.safeImageH / 300 * 2.54).toFixed(2);
+            // For Polaroid 2, use imageArea dimensions
+            let imageAreaCmW, imageAreaCmH, imageAreaPxW, imageAreaPxH;
+
+            if (config.templateType === 'type2' && config.imageArea) {
+                // Polaroid 2: Use imageArea from config
+                imageAreaPxW = config.imageArea.width;
+                imageAreaPxH = config.imageArea.height;
+                imageAreaCmW = (imageAreaPxW / 300 * 2.54).toFixed(2);
+                imageAreaCmH = (imageAreaPxH / 300 * 2.54).toFixed(2);
+            } else {
+                // Polaroid 1: Calculate from border settings
+                imageAreaPxW = dimensions.safeImageW;
+                imageAreaPxH = dimensions.safeImageH;
+                imageAreaCmW = (imageAreaPxW / 300 * 2.54).toFixed(2);
+                imageAreaCmH = (imageAreaPxH / 300 * 2.54).toFixed(2);
+            }
 
             const bgColorName = config.bgColor === '#FFFFFF' ? 'Trắng' : 
                                config.bgColor === '#000000' ? 'Đen' : 
@@ -38579,7 +40051,7 @@
                             <td class="spec-key">□ Vùng ảnh</td>
                             <td class="spec-value ${!dimensions.isValid ? 'error' : 'highlight'}">
                                 ${imageAreaCmW} × ${imageAreaCmH}<span class="spec-unit">cm</span>
-                                <span class="spec-detail">(${dimensions.safeImageW} × ${dimensions.safeImageH} px tại 300 DPI)</span>
+                                <span class="spec-detail">(${imageAreaPxW} × ${imageAreaPxH} px tại 300 DPI)</span>
                                 <button class="quick-crop-btn" onclick="window.converter.quickCropToSize(${imageAreaCmW}, ${imageAreaCmH})">
                                     <span class="btn-icon">✂</span>
                                     <span>Cắt ảnh nhanh</span>
@@ -39417,7 +40889,7 @@
         updateTemplateUI() {
             // Check if templateData is initialized
             if (!this.templateData || !this.templateData.images) return;
-            
+
             // Update image count
             const templateImageCount = document.getElementById('templateImageCount');
             if (templateImageCount) {
@@ -39435,7 +40907,7 @@
             // Update navigation buttons
             const templatePrevBtn = document.getElementById('templatePrevBtn');
             const templateNextBtn = document.getElementById('templateNextBtn');
-            
+
             if (templatePrevBtn) {
                 templatePrevBtn.disabled = this.templateData.currentIndex <= 0;
             }
@@ -39446,7 +40918,10 @@
             // Update preview and gallery with async
             this.updateTemplatePreview();
             this.updateTemplateGallery();
-            
+
+            // Update frame preview visibility
+            this.showTemplateFramePreview();
+
             // Show/hide crop controls
             const templateCropControls = document.getElementById('templateCropControls');
             if (templateCropControls) {
@@ -39458,38 +40933,57 @@
             const polaroidImageArea = document.getElementById('polaroidImageArea');
             if (!polaroidImageArea) return;
 
+            const framePreview = document.getElementById('templateFramePreview');
+            const placeholder = document.getElementById('placeholderText');
+
             // Check if templateData is initialized
             if (!this.templateData || !this.templateData.images || this.templateData.images.length === 0) {
-                polaroidImageArea.innerHTML = '<div class="placeholder-text">Chờ ảnh...</div>';
+                // Hide frame preview and show placeholder
+                if (framePreview) framePreview.style.display = 'none';
+                if (placeholder) {
+                    placeholder.style.display = 'block';
+                    placeholder.textContent = 'Chờ ảnh...';
+                }
+                // Remove any existing image preview
+                const existingPreview = polaroidImageArea.querySelector('.image-preview-result');
+                if (existingPreview) existingPreview.remove();
                 return;
             }
 
             const currentImage = this.templateData.images[this.templateData.currentIndex];
             if (!currentImage || !currentImage.croppedDataURL) return;
 
+            // Hide frame preview and placeholder when showing image
+            if (framePreview) framePreview.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'none';
+
             // Create full Polaroid preview that matches exactly with download
             try {
                 const previewCanvas = await this.createPolaroidCanvas(currentImage);
-                
-                // Scale down for preview display while maintaining aspect ratio
-                const maxPreviewWidth = 180; // Match CSS width
-                const scale = maxPreviewWidth / previewCanvas.width;
-                const previewHeight = previewCanvas.height * scale;
-                
+
                 // Convert to data URL for display
                 const previewDataURL = previewCanvas.toDataURL('image/jpeg', 1.0);
-                
-                // Update preview with exact same image as download
-                polaroidImageArea.innerHTML = `
-                    <img src="${previewDataURL}" 
-                         style="width: ${maxPreviewWidth}px; height: ${previewHeight}px; 
-                                object-fit: contain; border-radius: 4px; 
-                                max-width: 100%; max-height: 100%;">
-                `;
+
+                // Update or create image preview
+                let imagePreview = polaroidImageArea.querySelector('.image-preview-result');
+                if (!imagePreview) {
+                    imagePreview = document.createElement('img');
+                    imagePreview.className = 'image-preview-result';
+                    polaroidImageArea.appendChild(imagePreview);
+                }
+
+                imagePreview.src = previewDataURL;
+                // CSS class handles responsive sizing
             } catch (error) {
                 console.error('Error creating preview:', error);
                 // Fallback to basic preview
-                polaroidImageArea.innerHTML = `<img src="${currentImage.croppedDataURL}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">`;
+                let imagePreview = polaroidImageArea.querySelector('.image-preview-result');
+                if (!imagePreview) {
+                    imagePreview = document.createElement('img');
+                    imagePreview.className = 'image-preview-result';
+                    polaroidImageArea.appendChild(imagePreview);
+                }
+                imagePreview.src = currentImage.croppedDataURL;
             }
         }
 
@@ -40294,46 +41788,157 @@
         }
 
         async createPolaroidCanvas(imageData) {
-            const dimensions = this.calculatePolaroidDimensions();
             const config = this.templateData.config;
-            const border = config.border;
-            
+
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            
+
+            // Check if using Polaroid 2 (overlay mode)
+            if (config.templateType === 'type2' && config.overlayFrame && config.overlayPath) {
+                // For Polaroid 2: Get canvas size from template config
+                const templateConfig = this.getPolaroid2TemplateConfig();
+                canvas.width = templateConfig.canvasSize.width;
+                canvas.height = templateConfig.canvasSize.height;
+                return this.createPolaroidWithOverlay(imageData, canvas, ctx, config);
+            }
+
+            // For Polaroid 1: Use calculated dimensions based on border settings
+            const dimensions = this.calculatePolaroidDimensions();
+            const border = config.border;
+
             // Set canvas to calculated Polaroid size
             canvas.width = dimensions.canvasW;
             canvas.height = dimensions.canvasH;
-            
+
+            // Polaroid 1 (Standard mode with borders)
             // Fill with background color
             ctx.fillStyle = config.bgColor;
             ctx.fillRect(0, 0, dimensions.canvasW, dimensions.canvasH);
-            
+
             // Draw the image in the calculated area with borders
             const img = new Image();
             img.src = imageData.croppedDataURL;
-            
+
             return new Promise((resolve) => {
                 img.onload = () => {
                     // Calculate image position with safe area offset
                     const imageX = border.leftPx + config.safeAreaPx;
                     const imageY = border.topPx + config.safeAreaPx;
-                    
+
                     // Draw image
                     ctx.drawImage(img, imageX, imageY, dimensions.safeImageW, dimensions.safeImageH);
-                    
+
                     // Draw caption if text is provided
                     if (config.caption.text && config.caption.text.trim()) {
                         this.drawCaption(ctx, dimensions, config);
                     }
-                    
-                    // Draw overlay frame if enabled
-                    if (config.overlayFrame) {
-                        this.drawOverlayFrame(ctx, dimensions);
-                    }
-                    
+
                     resolve(canvas);
                 };
+            });
+        }
+
+        async createPolaroidWithOverlay(imageData, canvas, ctx, config) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    console.log('🖼️ Creating Polaroid 2 with overlay...');
+                    console.log('Canvas size:', canvas.width, 'x', canvas.height);
+
+                    // Fill canvas with white background first
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Load user image - Use ORIGINAL image for Polaroid 2
+                    const userImg = new Image();
+                    // Use original image instead of cropped version
+                    userImg.src = imageData.originalImage ? imageData.originalImage.src : imageData.croppedDataURL;
+
+                    await new Promise((res) => {
+                        userImg.onload = res;
+                        userImg.onerror = () => reject(new Error('Failed to load user image'));
+                    });
+
+                    console.log('User image loaded:', userImg.width, 'x', userImg.height);
+
+                    // Get image area coordinates from config
+                    // Default values for Polaroid template 650×1004px @ 300 DPI
+                    const imageArea = config.imageArea || {
+                        x: 36,
+                        y: 63,
+                        width: 576,
+                        height: 785
+                    };
+
+                    console.log('Image area:', imageArea);
+
+                    // Check if image has custom crop/zoom/pan settings
+                    const cropSettings = imageData.cropSettings || {};
+                    const zoom = cropSettings.zoom || 1.0;
+                    const panX = cropSettings.panX || 0;
+                    const panY = cropSettings.panY || 0;
+
+                    // Draw user image with object-fit: cover + zoom/pan support
+                    // Calculate how to crop the image to fill the area
+                    const imgAspect = userImg.width / userImg.height;
+                    const areaAspect = imageArea.width / imageArea.height;
+
+                    let srcX = 0, srcY = 0, srcW = userImg.width, srcH = userImg.height;
+
+                    if (imgAspect > areaAspect) {
+                        // Image is wider, crop sides
+                        srcW = userImg.height * areaAspect;
+                        srcX = (userImg.width - srcW) / 2;
+                    } else {
+                        // Image is taller, crop top/bottom
+                        srcH = userImg.width / areaAspect;
+                        srcY = (userImg.height - srcH) / 2;
+                    }
+
+                    // Apply zoom (reduce source dimensions to create zoom effect)
+                    srcW = srcW / zoom;
+                    srcH = srcH / zoom;
+
+                    // Apply pan (adjust source position)
+                    srcX = srcX + panX;
+                    srcY = srcY + panY;
+
+                    // Ensure source coordinates are within image bounds
+                    srcX = Math.max(0, Math.min(userImg.width - srcW, srcX));
+                    srcY = Math.max(0, Math.min(userImg.height - srcH, srcY));
+
+                    console.log('Drawing user image - src:', srcX, srcY, srcW, srcH);
+                    console.log('Drawing user image - dest:', imageArea.x, imageArea.y, imageArea.width, imageArea.height);
+
+                    // Draw cropped user image to fit the transparent area
+                    ctx.drawImage(
+                        userImg,
+                        srcX, srcY, srcW, srcH,
+                        imageArea.x, imageArea.y, imageArea.width, imageArea.height
+                    );
+
+                    // Load and draw overlay template on top
+                    const overlayImg = new Image();
+                    overlayImg.crossOrigin = 'anonymous'; // Enable CORS
+                    overlayImg.src = config.overlayPath;
+
+                    overlayImg.onload = () => {
+                        console.log('Overlay loaded:', overlayImg.width, 'x', overlayImg.height);
+                        // Draw overlay frame on top of user image
+                        ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height);
+                        console.log('✅ Polaroid 2 created successfully!');
+                        resolve(canvas);
+                    };
+
+                    overlayImg.onerror = (err) => {
+                        console.error('❌ Failed to load overlay template:', err);
+                        console.error('Overlay path:', config.overlayPath);
+                        resolve(canvas);
+                    };
+
+                } catch (error) {
+                    console.error('Error creating Polaroid with overlay:', error);
+                    reject(error);
+                }
             });
         }
 
@@ -41911,31 +43516,67 @@
                     if (paperSizeSelect) paperSizeSelect.value = 'a4';
                     if (photoSizeSelect) photoSizeSelect.value = '5.5x8.5';
                     if (printModeSelect) printModeSelect.value = 'single';
-                    if (marginAll) marginAll.value = 10;
+                    if (marginAll) marginAll.value = 5;
                     this.printData.config.paperSize = { width: 210, height: 297 };
                     this.printData.config.photoSize = { width: 5.5, height: 8.5 };
                     this.printData.config.printMode = 'single';
-                    this.printData.config.margins = { top: 10, bottom: 10, left: 10, right: 10 };
+                    this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
                     break;
                 case 'standard-6x9':
                     if (paperSizeSelect) paperSizeSelect.value = 'a4';
                     if (photoSizeSelect) photoSizeSelect.value = '6x9';
                     if (printModeSelect) printModeSelect.value = 'single';
-                    if (marginAll) marginAll.value = 15;
+                    if (marginAll) marginAll.value = 5;
                     this.printData.config.paperSize = { width: 210, height: 297 };
                     this.printData.config.photoSize = { width: 6, height: 9 };
                     this.printData.config.printMode = 'single';
-                    this.printData.config.margins = { top: 15, bottom: 15, left: 15, right: 15 };
+                    this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
                     break;
                 case 'standard-7x10':
                     if (paperSizeSelect) paperSizeSelect.value = 'a4';
                     if (photoSizeSelect) photoSizeSelect.value = '7x10';
                     if (printModeSelect) printModeSelect.value = 'single';
-                    if (marginAll) marginAll.value = 10;
+                    if (marginAll) marginAll.value = 5;
                     this.printData.config.paperSize = { width: 210, height: 297 };
                     this.printData.config.photoSize = { width: 7, height: 10 };
                     this.printData.config.printMode = 'single';
-                    this.printData.config.margins = { top: 10, bottom: 10, left: 10, right: 10 };
+                    this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    break;
+                case 'paper-10x15':
+                    if (paperSizeSelect) paperSizeSelect.value = 'custom';
+                    if (photoSizeSelect) photoSizeSelect.value = 'custom';
+                    if (printModeSelect) printModeSelect.value = 'single';
+                    if (marginAll) marginAll.value = 5;
+                    this.printData.config.paperSize = { width: 100, height: 150 }; // 10×15cm = 100×150mm
+                    this.printData.config.photoSize = { width: 9, height: 14 }; // Ảnh vừa với lề 5mm
+                    this.printData.config.printMode = 'single';
+                    this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.orientation = 'portrait';
+                    this.showToast('📐 Giấy 10×15cm - 1 ảnh/trang', 'success');
+                    break;
+                case 'paper-a6':
+                    if (paperSizeSelect) paperSizeSelect.value = 'custom';
+                    if (photoSizeSelect) photoSizeSelect.value = 'custom';
+                    if (printModeSelect) printModeSelect.value = 'single';
+                    if (marginAll) marginAll.value = 5;
+                    this.printData.config.paperSize = { width: 105, height: 148 }; // A6 = 105×148mm
+                    this.printData.config.photoSize = { width: 9.5, height: 13.8 }; // Ảnh vừa với lề 5mm
+                    this.printData.config.printMode = 'single';
+                    this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.orientation = 'portrait';
+                    this.showToast('📐 Giấy A6 (10.5×14.8cm) - 1 ảnh/trang', 'success');
+                    break;
+                case 'paper-a5':
+                    if (paperSizeSelect) paperSizeSelect.value = 'custom';
+                    if (photoSizeSelect) photoSizeSelect.value = 'custom';
+                    if (printModeSelect) printModeSelect.value = 'single';
+                    if (marginAll) marginAll.value = 5;
+                    this.printData.config.paperSize = { width: 148, height: 210 }; // A5 = 148×210mm
+                    this.printData.config.photoSize = { width: 6, height: 9 }; // Ảnh 6×9cm phù hợp
+                    this.printData.config.printMode = 'single';
+                    this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.orientation = 'portrait';
+                    this.showToast('📐 Giấy A5 (14.8×21cm) - tối ưu ảnh 6×9cm', 'success');
                     break;
                 case 'custom':
                     // Don't change anything, let user configure
@@ -42050,7 +43691,7 @@
             this.printData.config = {
                 paperSize: { width: 210, height: 297 }, // A4
                 photoSize: { width: 5.5, height: 8.5 },
-                margins: { top: 10, bottom: 10, left: 10, right: 10 },
+                margins: { top: 5, bottom: 5, left: 5, right: 5 },
                 gutter: { x: 5, y: 5 },
                 dpi: 300,
                 orientation: 'portrait',
