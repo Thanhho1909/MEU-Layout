@@ -8215,39 +8215,141 @@
 
         .modal-footer {
             padding: 20px 25px;
-            border-top: 1px solid #e5e7eb;
+            border-top: 2px solid #e5e7eb;
+            background: linear-gradient(to bottom, #ffffff, #f9fafb);
             display: flex;
-            gap: 15px;
-            justify-content: flex-end;
+            gap: 12px;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .modal-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
+            padding: 12px 24px;
+            border: 2px solid transparent;
+            border-radius: 10px;
             font-size: 1rem;
             font-weight: 600;
+            font-family: 'Lexend', sans-serif;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .modal-btn:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .modal-btn.cancel {
-            background: #6b7280;
+            background: #ef4444;
             color: white;
+            border-color: #dc2626;
+            margin-right: auto;
         }
 
         .modal-btn.cancel:hover {
-            background: #4b5563;
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .modal-btn.cancel:active {
+            transform: translateY(0);
+        }
+
+        .modal-btn.secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border-color: #d1d5db;
+        }
+
+        .modal-btn.secondary:hover {
+            background: #e5e7eb;
+            border-color: #9ca3af;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .modal-btn.primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .modal-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.5);
+        }
+
+        .modal-btn.primary:active {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .modal-btn:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Modal footer responsive */
+        @media (max-width: 768px) {
+            .modal-footer {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px 20px;
+            }
+
+            .modal-footer > div {
+                width: 100%;
+                display: flex !important;
+                flex-direction: column;
+                gap: 10px !important;
+            }
+
+            .modal-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .modal-btn.cancel {
+                margin-right: 0;
+                order: 3;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modal-footer {
+                padding: 12px 15px;
+            }
+
+            .modal-btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
         }
 
         /* Crop Editor Styles */
@@ -9052,6 +9154,8 @@
             flex-direction: column;
             gap: 20px;
             height: calc(100% - 120px);
+            overflow: hidden; /* Ngăn tràn nội dung */
+            min-height: 0; /* Cho phép flex shrink */
         }
 
         .global-crop-controls {
@@ -9064,6 +9168,8 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 16px;
+            flex-shrink: 0; /* Không cho controls bị thu nhỏ */
+            z-index: 10; /* Luôn hiển thị trên cùng */
         }
 
         .global-info {
@@ -9111,28 +9217,38 @@
 
         .multi-crop-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(23.75rem, 100%), 1fr));
-            gap: clamp(1rem, 3vw, 2rem); /* 16px - 32px responsive */
+            /* Tự động điều chỉnh số cột dựa trên không gian có sẵn */
+            grid-template-columns: repeat(auto-fill, minmax(min(23.75rem, 100%), 1fr));
+            gap: clamp(2rem, 3vw, 3rem); /* Tăng gap: 32px - 48px để không che tên */
+            row-gap: clamp(2.5rem, 4vw, 4rem); /* Row gap lớn hơn: 40px - 64px */
             flex: 1;
             overflow-y: auto;
-            padding: clamp(0.5rem, 2vw, 1.5rem);
-            justify-content: center;
+            overflow-x: hidden;
+            padding: clamp(1rem, 2.5vw, 2rem); /* Tăng padding */
             max-width: 100%;
+            max-height: 100%; /* Giới hạn chiều cao để có scroll */
+            min-height: 0; /* Cho phép shrink trong flexbox */
             container-type: inline-size;
+            /* Grid alignment */
+            align-content: start;
+            justify-items: center;
         }
 
         .multi-crop-card {
             background: var(--white);
             border: 0.1875rem solid var(--light-yellow); /* 3px */
             border-radius: 0.75rem; /* 12px */
-            overflow: hidden;
+            overflow: visible; /* Cho phép hiển thị đầy đủ */
             transition: all 0.3s ease;
             position: relative;
-            min-height: clamp(25rem, 30vh, 35rem); /* 400px - 560px responsive */
+            /* Loại bỏ aspect-ratio để tránh bị cắt nội dung */
+            min-height: clamp(22rem, 28vh, 32rem); /* 352px - 512px responsive */
+            height: auto; /* Tự động điều chỉnh chiều cao */
             width: 100%;
-            aspect-ratio: 4/5; /* Consistent card proportions */
+            max-width: 28rem; /* Giới hạn chiều rộng tối đa 448px */
             display: flex;
             flex-direction: column;
+            margin-bottom: 1rem; /* Thêm khoảng cách dưới card */
         }
 
         .multi-crop-card.selected {
@@ -9152,6 +9268,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0; /* Không cho header bị thu nhỏ */
+            border-radius: 0.75rem 0.75rem 0 0; /* Bo tròn góc trên */
         }
 
         .multi-crop-name {
@@ -9188,8 +9306,9 @@
 
         .multi-crop-canvas-container {
             position: relative;
-            flex: 1; /* Take remaining space in card */
-            min-height: clamp(15rem, 25vh, 25rem); /* 240px - 400px responsive */
+            flex: 0 1 auto; /* Không chiếm hết không gian, shrink được */
+            min-height: clamp(12rem, 20vh, 18rem); /* Giảm min-height: 192px - 288px */
+            max-height: clamp(20rem, 30vh, 28rem); /* Giới hạn max-height */
             width: 100%;
             background: #f8f9fa;
             display: flex;
@@ -9198,7 +9317,7 @@
             overflow: hidden; /* Prevent overflow */
             border: 0.125rem solid #e0e0e0; /* 2px */
             margin: 0;
-            aspect-ratio: 4/3;
+            aspect-ratio: 4/3; /* Giữ tỷ lệ canvas */
         }
 
         .multi-crop-canvas {
@@ -9289,6 +9408,8 @@
             background: #f8f9fa;
             display: flex;
             gap: 8px;
+            flex-shrink: 0; /* Không cho controls bị thu nhỏ */
+            border-top: 1px solid #e0e0e0;
         }
 
         .multi-crop-btn {
@@ -9310,12 +9431,47 @@
         }
 
         .multi-crop-info {
-            padding: 8px 16px;
-            background: var(--light-yellow);
-            font-size: 0.8rem;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #fff9e6 0%, #fff4d6 100%);
+            border-top: 1px solid #f0e68c;
+            font-size: 0.75rem;
             color: var(--text-dark);
-            text-align: center;
+            text-align: left;
+            line-height: 1.5;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; /* Không cho info bị thu nhỏ */
+            position: relative; /* Đảm bảo luôn hiển thị */
+            z-index: 1; /* Luôn ở trên */
+            border-radius: 0 0 0.75rem 0.75rem; /* Bo tròn góc dưới */
         }
+
+        .multi-crop-info strong {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        /* Cải thiện hiển thị khi có ít ảnh (1-3 ảnh) */
+        /* Sử dụng CSS :has() để phát hiện số lượng card */
+        .multi-crop-container:has(.multi-crop-card:nth-child(1):last-child) {
+            /* Chỉ có 1 ảnh - grid 1 cột center */
+            grid-template-columns: minmax(min(23.75rem, 100%), min(28rem, 90vw));
+            justify-content: center;
+        }
+
+        .multi-crop-container:has(.multi-crop-card:nth-child(2):last-child) {
+            /* Có 2 ảnh - grid 2 cột với max-width */
+            grid-template-columns: repeat(2, minmax(min(20rem, 100%), min(26rem, 1fr)));
+        }
+
+        .multi-crop-container:has(.multi-crop-card:nth-child(3):last-child) {
+            /* Có 3 ảnh - grid 3 cột với max-width */
+            grid-template-columns: repeat(3, minmax(min(18rem, 100%), min(24rem, 1fr)));
+        }
+
+        /* Với 4+ ảnh, sử dụng grid mặc định (auto-fill) */
 
         /* Modern Responsive Design - Zoom-Independent Layout
            
@@ -9342,15 +9498,42 @@
         /* Container Queries for Multi-Crop Component */
         @container (max-width: 60rem) {
             .multi-crop-container {
-                grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
-                gap: clamp(0.75rem, 2vw, 1.5rem);
+                grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr));
+                gap: clamp(1.5rem, 2.5vw, 2rem); /* Giữ gap lớn */
+                row-gap: clamp(2rem, 3vw, 2.5rem);
+            }
+
+            .multi-crop-card {
+                min-height: clamp(20rem, 26vh, 30rem);
+                margin-bottom: 0.75rem;
+            }
+
+            /* Override cho ít ảnh */
+            .multi-crop-container:has(.multi-crop-card:nth-child(2):last-child) {
+                grid-template-columns: repeat(2, minmax(min(18rem, 100%), 1fr));
+            }
+
+            .multi-crop-container:has(.multi-crop-card:nth-child(3):last-child) {
+                grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
             }
         }
 
         @container (max-width: 40rem) {
             .multi-crop-container {
-                grid-template-columns: 1fr;
-                gap: clamp(1rem, 3vw, 2rem);
+                grid-template-columns: 1fr !important; /* Force 1 cột trên màn hình nhỏ */
+                gap: clamp(1.5rem, 2.5vw, 2rem);
+                row-gap: clamp(2rem, 3vw, 2.5rem);
+            }
+
+            .multi-crop-card {
+                max-width: 100%;
+                min-height: auto; /* Tự động điều chỉnh */
+                margin-bottom: 0.5rem;
+            }
+
+            .multi-crop-canvas-container {
+                min-height: clamp(10rem, 18vh, 15rem);
+                max-height: clamp(15rem, 25vh, 20rem);
             }
         }
 
@@ -9390,11 +9573,17 @@
             .file-list {
                 grid-template-columns: repeat(auto-fit, minmax(min(6rem, 100%), 1fr));
             }
-            
+
             .multi-crop-container {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important; /* Force 1 cột */
+                gap: clamp(0.75rem, 2vw, 1.25rem);
             }
-            
+
+            .multi-crop-card {
+                max-width: 100%;
+                min-height: clamp(16rem, 22vh, 26rem);
+            }
+
             .stats {
                 grid-template-columns: 1fr;
             }
@@ -9452,7 +9641,50 @@
             }
 
             .multi-crop-container {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important; /* Force 1 cột */
+                padding: clamp(1rem, 2vw, 1.5rem);
+                gap: clamp(1.5rem, 2.5vw, 2rem);
+                row-gap: clamp(2rem, 3vw, 2.5rem);
+            }
+
+            .multi-crop-card {
+                max-width: 100%;
+                min-height: auto; /* Tự động điều chỉnh */
+                margin-bottom: 0.5rem;
+            }
+
+            .multi-crop-canvas-container {
+                min-height: clamp(10rem, 18vh, 15rem);
+                max-height: clamp(16rem, 28vh, 22rem);
+            }
+
+            .multi-crop-info {
+                font-size: 0.7rem;
+                min-height: 45px;
+                padding: 8px 12px;
+            }
+
+            .global-crop-controls {
+                padding: 12px 16px;
+                gap: 12px;
+            }
+
+            .global-info {
+                flex-direction: column;
+                gap: 12px;
+                width: 100%;
+            }
+
+            .global-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .global-btn {
+                flex: 1;
+                min-width: 0;
+                font-size: 0.8rem;
+                padding: 6px 12px;
             }
         }
 
@@ -22381,9 +22613,17 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn cancel" id="cancelMultiCrop">Hủy</button>
-                <button class="modal-btn" id="selectAllCrops">Chọn tất cả</button>
-                <button class="modal-btn primary" id="acceptAllCrops">Cắt tất cả ảnh đã chọn</button>
+                <button class="modal-btn cancel" id="cancelMultiCrop">
+                    <span>❌</span> Hủy bỏ
+                </button>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button class="modal-btn secondary" id="selectAllCrops">
+                        <span>☑️</span> Chọn tất cả
+                    </button>
+                    <button class="modal-btn primary" id="acceptAllCrops">
+                        <span>✂️</span> Cắt tất cả ảnh đã chọn
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -30478,6 +30718,18 @@
                 const img = new Image();
                 
                 img.onload = () => {
+                    // Lưu metadata ảnh gốc ngay khi load
+                    fileData.originalWidth = img.naturalWidth || img.width;
+                    fileData.originalHeight = img.naturalHeight || img.height;
+                    fileData.width = img.width;
+                    fileData.height = img.height;
+                    if (!fileData.dpi) {
+                        fileData.dpi = 300; // Default DPI
+                    }
+
+                    // Hiển thị thông tin ngay lập tức (trước khi có crop area)
+                    this.updateMultiCropInfo(index);
+
                     // Wait for container to be properly sized
                     setTimeout(() => {
                         try {
@@ -30485,11 +30737,11 @@
                             const container = canvas.parentElement;
                             const containerWidth = container.clientWidth || 380;
                             const containerHeight = container.clientHeight || 320;
-                            
+
                             // Use full container width, dynamically scale height based on image aspect ratio
                             const maxWidth = containerWidth;
                             const maxHeight = containerHeight;
-                        
+
                         console.log(`Image ${index}: ${img.width}x${img.height}, Container max: ${maxWidth}x${maxHeight}`);
                         
                         // Calculate scale to fit within max dimensions
@@ -30810,7 +31062,7 @@
             // Setup global crop controls
             setupGlobalCropControls() {
                 // Remove existing listeners first
-                const globalControls = ['resetAllCrops', 'centerAllCrops', 'fitAllCrops', 'globalAspectLock', 'globalSizeLock', 'selectAllCrops', 'acceptAllCrops'];
+                const globalControls = ['resetAllCrops', 'centerAllCrops', 'fitAllCrops', 'globalAspectLock', 'globalSizeLock', 'selectAllCrops', 'acceptAllCrops', 'cancelMultiCrop'];
                 globalControls.forEach(id => {
                     const element = document.getElementById(id);
                     if (element) {
@@ -30909,6 +31161,11 @@
                 
                 document.getElementById('acceptAllCrops')?.addEventListener('click', () => {
                     this.processMultiCropSelection();
+                });
+
+                // Cancel button - close modal
+                document.getElementById('cancelMultiCrop')?.addEventListener('click', () => {
+                    this.hideCropEditor();
                 });
             }
 
@@ -31188,17 +31445,25 @@
 
             updateMultiCropInfo(index) {
                 const infoElement = document.getElementById(`crop-info-${index}`);
-                const cropArea = this.multiCropData.cropSelections.get(index);
-                const canvas = document.getElementById(`canvas-${index}`);
-                
-                if (infoElement && cropArea && canvas) {
-                    const scaleX = canvas.width / canvas.offsetWidth;
-                    const scaleY = canvas.height / canvas.offsetHeight;
-                    const actualWidth = Math.round(cropArea.width * scaleX);
-                    const actualHeight = Math.round(cropArea.height * scaleY);
-                    
-                    infoElement.textContent = `${actualWidth}×${actualHeight}px`;
-                }
+                const fileData = this.multiCropData.files[index];
+
+                if (!infoElement || !fileData) return;
+
+                // Lấy kích thước gốc từ file metadata
+                const originalWidth = fileData.originalWidth || fileData.width;
+                const originalHeight = fileData.originalHeight || fileData.height;
+                const dpi = fileData.dpi || 300; // Default 300 DPI
+
+                // Tính kích thước thực tế (cm)
+                const widthCm = ((originalWidth / dpi) * 2.54).toFixed(1);
+                const heightCm = ((originalHeight / dpi) * 2.54).toFixed(1);
+
+                // Chỉ hiển thị kích thước gốc (target size đã có ở global-crop-controls)
+                infoElement.innerHTML = `
+                    <div style="font-size: 0.85rem;">
+                        <strong>Ảnh gốc:</strong> ${widthCm}×${heightCm} cm (${originalWidth}×${originalHeight}px @ ${dpi} DPI)
+                    </div>
+                `;
             }
 
             // Process multi-crop selection
