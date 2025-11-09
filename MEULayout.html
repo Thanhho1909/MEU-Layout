@@ -29005,17 +29005,32 @@
 
             // Initialize crop selection overlay
             initializeCropSelection(canvasWidth, canvasHeight) {
-                const targetRatio = this.cropData.config.width / this.cropData.config.height;
+                // Tính toán targetRatio dựa trên orientation của ảnh và config
+                let targetRatio;
                 const canvasRatio = canvasWidth / canvasHeight;
-                
+                const configRatio = this.cropData.config.width / this.cropData.config.height;
+
+                // Xác định xem ảnh là ngang hay dọc
+                const isImageLandscape = canvasWidth > canvasHeight;
+                const isConfigLandscape = this.cropData.config.width > this.cropData.config.height;
+
+                // Tự động điều chỉnh ratio nếu orientation khác nhau
+                if (isImageLandscape !== isConfigLandscape) {
+                    // Đảo ngược ratio để phù hợp với orientation của ảnh
+                    targetRatio = 1 / configRatio;
+                    console.log(`🔄 Tự động điều chỉnh crop ratio: ${configRatio.toFixed(3)} → ${targetRatio.toFixed(3)} (ảnh ${isImageLandscape ? 'ngang' : 'dọc'}, config ${isConfigLandscape ? 'ngang' : 'dọc'})`);
+                } else {
+                    targetRatio = configRatio;
+                }
+
                 let selectionWidth, selectionHeight;
-                
+
                 // Luôn sử dụng kích thước tối đa có thể (95% để có margin nhỏ)
                 if (targetRatio > canvasRatio) {
                     // Target rộng hơn canvas - fit theo chiều rộng
                     selectionWidth = canvasWidth * 0.95;
                     selectionHeight = selectionWidth / targetRatio;
-                    
+
                     // Nếu chiều cao vượt quá canvas, fit theo chiều cao
                     if (selectionHeight > canvasHeight * 0.95) {
                         selectionHeight = canvasHeight * 0.95;
@@ -29025,17 +29040,17 @@
                     // Target cao hơn canvas - fit theo chiều cao
                     selectionHeight = canvasHeight * 0.95;
                     selectionWidth = selectionHeight * targetRatio;
-                    
+
                     // Nếu chiều rộng vượt quá canvas, fit theo chiều rộng
                     if (selectionWidth > canvasWidth * 0.95) {
                         selectionWidth = canvasWidth * 0.95;
                         selectionHeight = selectionWidth / targetRatio;
                     }
                 }
-                
+
                 const x = (canvasWidth - selectionWidth) / 2;
                 const y = (canvasHeight - selectionHeight) / 2;
-                
+
                 this.updateCropSelection(x, y, selectionWidth, selectionHeight);
                 this.initializeCropHandlers();
             }
@@ -29077,7 +29092,17 @@
                 let startX = 0, startY = 0, startLeft = 0, startTop = 0, startWidth = 0, startHeight = 0;
                 let aspectLocked = true; // Can be toggled
                 let sizeLocked = false;
-                let targetAspectRatio = this.cropData?.config ? this.cropData.config.width / this.cropData.config.height : 1;
+
+                // Tính targetAspectRatio dựa trên orientation của canvas
+                const isCanvasLandscape = canvas.width > canvas.height;
+                const isConfigLandscape = this.cropData.config.width > this.cropData.config.height;
+                let targetAspectRatio;
+                if (isCanvasLandscape !== isConfigLandscape) {
+                    targetAspectRatio = this.cropData.config.height / this.cropData.config.width;
+                } else {
+                    targetAspectRatio = this.cropData.config.width / this.cropData.config.height;
+                }
+
                 let snapToGrid = true;
                 let snapThreshold = 10;
                 let lockedWidth = 0;
@@ -29543,11 +29568,28 @@
                 // CÔNG THỨC CHÍNH XÁC: (kích_thước_cm ÷ 2.54) × 300
                 // Cố định DPI = 300 (KHÔNG BAO GIỜ thay đổi)
                 const DPI = 300;
-                const targetWidth = Math.round((this.cropData.config.width / 2.54) * DPI);
-                const targetHeight = Math.round((this.cropData.config.height / 2.54) * DPI);
-                
-                console.log(`✅ KÍCH THƯỚC CHÍNH XÁC: ${this.cropData.config.width}×${this.cropData.config.height}cm at ${DPI}DPI → ${targetWidth}×${targetHeight}px`);
-                console.log(`📐 Công thức: (${this.cropData.config.width}÷2.54)×${DPI} × (${this.cropData.config.height}÷2.54)×${DPI} = ${targetWidth}×${targetHeight} pixels`);
+
+                // Tự động điều chỉnh width/height dựa trên orientation của vùng crop
+                const isCropLandscape = sourceWidth > sourceHeight;
+                const isConfigLandscape = this.cropData.config.width > this.cropData.config.height;
+
+                let finalWidth, finalHeight;
+                if (isCropLandscape === isConfigLandscape) {
+                    // Orientation khớp - giữ nguyên
+                    finalWidth = this.cropData.config.width;
+                    finalHeight = this.cropData.config.height;
+                } else {
+                    // Orientation khác - đảo ngược để khớp với ảnh
+                    finalWidth = this.cropData.config.height;
+                    finalHeight = this.cropData.config.width;
+                    console.log(`🔄 Đảo ngược kích thước output: ${this.cropData.config.width}×${this.cropData.config.height}cm → ${finalWidth}×${finalHeight}cm`);
+                }
+
+                const targetWidth = Math.round((finalWidth / 2.54) * DPI);
+                const targetHeight = Math.round((finalHeight / 2.54) * DPI);
+
+                console.log(`✅ KÍCH THƯỚC CHÍNH XÁC: ${finalWidth}×${finalHeight}cm at ${DPI}DPI → ${targetWidth}×${targetHeight}px`);
+                console.log(`📐 Công thức: (${finalWidth}÷2.54)×${DPI} × (${finalHeight}÷2.54)×${DPI} = ${targetWidth}×${targetHeight} pixels`);
                 
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
@@ -29589,13 +29631,24 @@
             async cropImageAuto(fileData) {
                 const img = new Image();
                 // Handle both converted files and crop tab files
-                const imageUrl = fileData.convertedBlob ? 
-                    URL.createObjectURL(fileData.convertedBlob) : 
+                const imageUrl = fileData.convertedBlob ?
+                    URL.createObjectURL(fileData.convertedBlob) :
                     (fileData.preview || this.safeCreateObjectURL(fileData.file));
-                
+
                 return new Promise((resolve) => {
                     img.onload = async () => {
-                        const targetRatio = this.cropData.config.width / this.cropData.config.height;
+                        // Tự động điều chỉnh targetRatio dựa trên orientation của ảnh
+                        const isImageLandscape = img.width > img.height;
+                        const isConfigLandscape = this.cropData.config.width > this.cropData.config.height;
+
+                        let targetRatio;
+                        if (isImageLandscape !== isConfigLandscape) {
+                            // Đảo ngược ratio để phù hợp với orientation của ảnh
+                            targetRatio = this.cropData.config.height / this.cropData.config.width;
+                        } else {
+                            targetRatio = this.cropData.config.width / this.cropData.config.height;
+                        }
+
                         const sourceRatio = img.width / img.height;
                         
                         let sourceX, sourceY, sourceWidth, sourceHeight;
@@ -30484,7 +30537,16 @@
                 // ALWAYS lock aspect ratio for manual crop with template size
                 let aspectLocked = true; // Changed: always maintain aspect ratio for template crops
                 let sizeLocked = false;
-                let targetAspectRatio = this.cropData?.config ? this.cropData.config.width / this.cropData.config.height : 1;
+
+                // Tính targetAspectRatio dựa trên orientation của canvas
+                const isCanvasLandscape = canvas.width > canvas.height;
+                const isConfigLandscape = this.cropData.config.width > this.cropData.config.height;
+                let targetAspectRatio;
+                if (isCanvasLandscape !== isConfigLandscape) {
+                    targetAspectRatio = this.cropData.config.height / this.cropData.config.width;
+                } else {
+                    targetAspectRatio = this.cropData.config.width / this.cropData.config.height;
+                }
                 
                 // Pixel-perfect movement with sub-pixel precision
                 let rafId = null;
@@ -30586,43 +30648,17 @@
                 const globalTargetSize = document.getElementById('globalTargetSize');
                 const globalAspectRatio = document.getElementById('globalAspectRatio');
                 
-                // Detect predominant orientation and adapt crop size (if auto-rotate enabled)
-                let adaptedCropSize = { width: this.cropData.config.width, height: this.cropData.config.height };
-                if (this.multiCropData.files.length > 0 && this.autoRotateEnabled !== false) {
-                    // Count landscape vs portrait images
-                    let landscapeCount = 0;
-                    let portraitCount = 0;
+                // Sử dụng crop size từ config (không auto-adapt ở đây)
+                // Logic auto-adapt đã được chuyển vào initializeMultiCropSelection() để xử lý từng ảnh riêng biệt
+                const baseCropSize = { width: this.cropData.config.width, height: this.cropData.config.height };
 
-                    for (const fileData of this.multiCropData.files) {
-                        const orientation = await this.detectImageOrientationFromFileData(fileData);
-                        if (orientation === 'landscape') {
-                            landscapeCount++;
-                        } else {
-                            portraitCount++;
-                        }
-                    }
+                console.log(`🎯 Multi-crop editor: Base size ${baseCropSize.width}×${baseCropSize.height}cm`);
+                console.log(`📐 Mỗi ảnh sẽ tự động điều chỉnh khung cắt dựa trên orientation riêng`);
 
-                    // If majority is landscape, adapt crop size
-                    if (landscapeCount > portraitCount) {
-                        const originalOrientation = adaptedCropSize.width > adaptedCropSize.height ? 'landscape' : 'portrait';
-                        if (originalOrientation === 'portrait') {
-                            adaptedCropSize = { width: adaptedCropSize.height, height: adaptedCropSize.width };
-                            console.log('Multi-crop: Adapted to landscape crop size:', adaptedCropSize);
-                        }
-                    }
-
-                    // Update crop config with adapted size
-                    this.cropData.config.width = adaptedCropSize.width;
-                    this.cropData.config.height = adaptedCropSize.height;
-                    this.cropData.config.aspectRatio = adaptedCropSize.width / adaptedCropSize.height;
-                } else if (this.multiCropData.files.length > 0 && this.autoRotateEnabled === false) {
-                    console.log('Multi-crop: Auto-rotate disabled, using original crop size:', adaptedCropSize);
-                }
-                
                 // Update global info
                 progress.textContent = `${this.multiCropData.files.length} ảnh`;
-                globalTargetSize.textContent = `${adaptedCropSize.width}×${adaptedCropSize.height}cm`;
-                globalAspectRatio.textContent = `${adaptedCropSize.width}:${adaptedCropSize.height}`;
+                globalTargetSize.textContent = `${baseCropSize.width}×${baseCropSize.height}cm`;
+                globalAspectRatio.textContent = `${baseCropSize.width}:${baseCropSize.height}`;
                 
                 // Clear container
                 container.innerHTML = '';
@@ -30839,20 +30875,24 @@
                     height: this.cropData.config.height
                 };
 
-                // Adapt crop size for this specific image (only if auto-rotate enabled)
-                let adaptedCropSize = baseCropSize;
-                let imageOrientation = 'unknown';
-                if (this.autoRotateEnabled !== false) {
-                    imageOrientation = await this.detectImageOrientationFromFileData(fileData);
-                    adaptedCropSize = this.adaptCropSizeToOrientation(baseCropSize, imageOrientation);
-                } else {
-                    console.log(`Image ${index}: Auto-rotate disabled, using base crop size`);
-                }
-                const targetRatio = adaptedCropSize.width / adaptedCropSize.height;
+                // Xác định targetRatio dựa trên canvas hiện tại (đã xoay nếu có)
+                let targetRatio;
                 const canvasRatio = canvasWidth / canvasHeight;
+                const configRatio = baseCropSize.width / baseCropSize.height;
 
-                console.log(`Image ${index} (${imageOrientation}): Using crop ${adaptedCropSize.width}×${adaptedCropSize.height} (ratio: ${targetRatio.toFixed(3)})`);
-                
+                // Kiểm tra xem canvas orientation có khớp với config không
+                const isCanvasLandscape = canvasWidth > canvasHeight;
+                const isConfigLandscape = baseCropSize.width > baseCropSize.height;
+
+                // Tự động điều chỉnh ratio nếu orientation khác nhau
+                if (isCanvasLandscape !== isConfigLandscape) {
+                    targetRatio = 1 / configRatio; // Đảo ngược ratio
+                    console.log(`🔄 Image ${index}: Canvas ${isCanvasLandscape ? 'ngang' : 'dọc'} vs Config ${isConfigLandscape ? 'ngang' : 'dọc'} → Đảo ratio ${configRatio.toFixed(3)} → ${targetRatio.toFixed(3)}`);
+                } else {
+                    targetRatio = configRatio;
+                    console.log(`✅ Image ${index}: Canvas và Config cùng orientation → Giữ ratio ${targetRatio.toFixed(3)}`);
+                }
+
                 let selectionWidth, selectionHeight;
                 
                 // Use 100% of available canvas space for MAXIMUM crop area
@@ -31320,7 +31360,16 @@
                         const deltaX = e.clientX - startX;
                         const deltaY = e.clientY - startY;
                         const aspectLocked = this.multiCropData.globalSettings.aspectLocked;
-                        const targetAspectRatio = this.cropData.config.width / this.cropData.config.height;
+
+                        // Tính targetAspectRatio dựa trên orientation của canvas
+                        const isCanvasLandscape = canvas.width > canvas.height;
+                        const isConfigLandscape = this.cropData.config.width > this.cropData.config.height;
+                        let targetAspectRatio;
+                        if (isCanvasLandscape !== isConfigLandscape) {
+                            targetAspectRatio = this.cropData.config.height / this.cropData.config.width;
+                        } else {
+                            targetAspectRatio = this.cropData.config.width / this.cropData.config.height;
+                        }
 
                         // Lấy scale để convert giữa display và canvas coordinates
                         const scaleX = canvas.offsetWidth / canvas.width;
@@ -31559,8 +31608,25 @@
 
                         // CÔNG THỨC CHÍNH XÁC: Cố định DPI = 300
                         const DPI = 300;
-                        const targetWidth = Math.round((this.cropData.config.width / 2.54) * DPI); // (cm ÷ 2.54) × 300
-                        const targetHeight = Math.round((this.cropData.config.height / 2.54) * DPI); // (cm ÷ 2.54) × 300
+
+                        // Tự động điều chỉnh width/height dựa trên orientation của vùng crop
+                        const isCropLandscape = sourceWidth > sourceHeight;
+                        const isConfigLandscape = this.cropData.config.width > this.cropData.config.height;
+
+                        let finalWidth, finalHeight;
+                        if (isCropLandscape === isConfigLandscape) {
+                            // Orientation khớp - giữ nguyên
+                            finalWidth = this.cropData.config.width;
+                            finalHeight = this.cropData.config.height;
+                        } else {
+                            // Orientation khác - đảo ngược để khớp với crop area
+                            finalWidth = this.cropData.config.height;
+                            finalHeight = this.cropData.config.width;
+                            console.log(`🔄 Multi-crop: Đảo ngược output size ${this.cropData.config.width}×${this.cropData.config.height}cm → ${finalWidth}×${finalHeight}cm`);
+                        }
+
+                        const targetWidth = Math.round((finalWidth / 2.54) * DPI); // (cm ÷ 2.54) × 300
+                        const targetHeight = Math.round((finalHeight / 2.54) * DPI); // (cm ÷ 2.54) × 300
 
                         cropCanvas.width = targetWidth;
                         cropCanvas.height = targetHeight;
