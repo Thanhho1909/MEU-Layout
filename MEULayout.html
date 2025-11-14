@@ -20650,18 +20650,32 @@
             .custom-grid {
                 padding: 16px;
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-                gap: 12px;
-                max-height: 400px;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 14px;
+                max-height: 500px;
                 overflow-y: auto;
+            }
+
+            /* Responsive grid */
+            @media (max-width: 768px) {
+                .custom-grid {
+                    grid-template-columns: 1fr;
+                    max-height: 400px;
+                }
+            }
+
+            @media (min-width: 1400px) {
+                .custom-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                }
             }
 
             .distribution-item {
                 background: white;
-                border: 1px solid #e5e7eb;
-                border-radius: 4px;
-                padding: 12px;
-                transition: border-color 0.15s ease;
+                border: 1.5px solid #e5e7eb;
+                border-radius: 6px;
+                padding: 14px;
+                transition: all 0.2s ease;
             }
 
             .distribution-item:hover {
@@ -20776,6 +20790,105 @@
 
             .apply-btn:hover {
                 background: #1d4ed8;
+            }
+
+            /* Styles mới cho custom distribution cải tiến */
+            .quantity-input-simple {
+                width: 70px;
+                padding: 6px 10px;
+                border: 1.5px solid #d1d5db;
+                border-radius: 4px;
+                font-size: 0.9em;
+                text-align: center;
+                transition: all 0.2s ease;
+            }
+
+            .quantity-input-simple:focus {
+                outline: none;
+                border-color: #2563eb;
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            }
+
+            .quantity-input-simple:hover {
+                border-color: #9ca3af;
+            }
+
+            .apply-btn-single {
+                padding: 6px 12px;
+                background: #10b981;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.85em;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+            }
+
+            .apply-btn-single:hover {
+                background: #059669;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+            }
+
+            .apply-btn-single:active {
+                transform: translateY(0);
+            }
+
+            .quantity-badge {
+                display: inline-block;
+                margin-left: 6px;
+                padding: 2px 6px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 10px;
+                font-size: 0.75em;
+                font-weight: 600;
+                vertical-align: middle;
+            }
+
+            /* Cải tiến quantity-controls layout */
+            .distribution-item .quantity-controls {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 0;
+            }
+
+            .distribution-item .quantity-label {
+                font-size: 0.85em;
+                color: #6b7280;
+                font-weight: 500;
+                min-width: 70px;
+            }
+
+            /* Cải tiến distribution-item */
+            .distribution-item {
+                transition: all 0.2s ease;
+            }
+
+            .distribution-item:hover {
+                border-color: #2563eb;
+                box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+            }
+
+            .distribution-item .image-name {
+                font-size: 0.9em;
+                color: #374151;
+                font-weight: 500;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 180px;
+            }
+
+            .distribution-item .image-size {
+                font-size: 0.8em;
+                color: #9ca3af;
+                display: flex;
+                align-items: center;
+                gap: 4px;
             }
 
             /* Duplex Compact */
@@ -38289,9 +38402,35 @@
 
             grid.innerHTML = '';
 
-            this.printData.selectedImages.forEach((imageData, index) => {
+            // Nhóm ảnh theo ID/data để loại bỏ duplicate, chỉ hiển thị unique
+            const uniqueImagesMap = new Map();
+
+            this.printData.selectedImages.forEach((imageData) => {
+                // Sử dụng ID hoặc data làm key để nhận diện ảnh gốc
+                const imageKey = imageData.id?.split('_')[0] || imageData.data || imageData.src;
+
+                if (!uniqueImagesMap.has(imageKey)) {
+                    // Lưu ảnh gốc và đếm số lượng
+                    uniqueImagesMap.set(imageKey, {
+                        data: imageData,
+                        count: 1,
+                        originalName: imageData.name?.replace(/_copy_\d+$/, '') || imageData.name
+                    });
+                } else {
+                    // Tăng số lượng cho ảnh đã tồn tại
+                    uniqueImagesMap.get(imageKey).count++;
+                }
+            });
+
+            // Render chỉ các ảnh unique
+            let displayIndex = 0;
+            uniqueImagesMap.forEach((imageInfo, imageKey) => {
+                const imageData = imageInfo.data;
+                const currentCount = imageInfo.count;
+
                 const item = document.createElement('div');
                 item.className = 'distribution-item';
+                item.dataset.imageKey = imageKey;
 
                 // Header with image and info
                 const headerDiv = document.createElement('div');
@@ -38300,96 +38439,88 @@
                 const img = document.createElement('img');
                 img.src = imageData.data || imageData.src || '';
                 img.className = 'image-thumb';
-                img.alt = imageData.name;
+                img.alt = imageInfo.originalName;
 
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'image-info';
 
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'image-name';
-                nameDiv.textContent = imageData.name || `Ảnh ${index + 1}`;
+                nameDiv.textContent = imageInfo.originalName || `Ảnh ${displayIndex + 1}`;
+                nameDiv.title = imageInfo.originalName; // Tooltip cho tên dài
 
                 const sizeDiv = document.createElement('div');
                 sizeDiv.className = 'image-size';
-                sizeDiv.textContent = `#${index + 1}`;
+                sizeDiv.textContent = `#${displayIndex + 1}`;
+
+                // Badge hiển thị số lượng hiện tại
+                if (currentCount > 1) {
+                    const badge = document.createElement('span');
+                    badge.className = 'quantity-badge';
+                    badge.textContent = `×${currentCount}`;
+                    badge.title = `Hiện có ${currentCount} bản`;
+                    sizeDiv.appendChild(badge);
+                }
 
                 infoDiv.appendChild(nameDiv);
                 infoDiv.appendChild(sizeDiv);
                 headerDiv.appendChild(img);
                 headerDiv.appendChild(infoDiv);
 
-                // Quantity controls
+                // Quantity controls - Đơn giản hóa
                 const controlsDiv = document.createElement('div');
                 controlsDiv.className = 'quantity-controls';
 
                 const label = document.createElement('span');
                 label.className = 'quantity-label';
-                label.textContent = 'Số lượng';
+                label.textContent = 'Số lượng:';
 
-                const inputGroup = document.createElement('div');
-                inputGroup.className = 'quantity-input-group';
-
-                const decreaseBtn = document.createElement('button');
-                decreaseBtn.className = 'quantity-btn';
-                decreaseBtn.textContent = '−';
-                decreaseBtn.onclick = (e) => {
-                    e.preventDefault();
-                    const input = inputGroup.querySelector('.quantity-input');
-                    const currentValue = parseInt(input.value) || 1;
-                    if (currentValue > 1) {
-                        input.value = currentValue - 1;
-                        this.updateQuantityPreview(index, input.value);
-                    }
-                };
-
+                // Input đơn giản, không cần nút +/-
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.min = '1';
-                input.max = '100';
-                input.value = '1';
-                input.className = 'quantity-input';
-                input.dataset.imageIndex = index;
+                input.max = '999';
+                input.value = currentCount.toString();
+                input.className = 'quantity-input-simple';
+                input.dataset.imageKey = imageKey;
+                input.placeholder = '1-999';
 
                 input.addEventListener('change', (e) => {
-                    const value = Math.max(1, Math.min(100, parseInt(e.target.value) || 1));
+                    const value = Math.max(1, Math.min(999, parseInt(e.target.value) || 1));
                     e.target.value = value;
-                    this.updateQuantityPreview(index, value);
                 });
 
-                const increaseBtn = document.createElement('button');
-                increaseBtn.className = 'quantity-btn';
-                increaseBtn.textContent = '+';
-                increaseBtn.onclick = (e) => {
-                    e.preventDefault();
-                    const input = inputGroup.querySelector('.quantity-input');
-                    const currentValue = parseInt(input.value) || 1;
-                    if (currentValue < 100) {
-                        input.value = currentValue + 1;
-                        this.updateQuantityPreview(index, input.value);
-                    }
-                };
-
+                // Nút Apply cho từng ảnh
                 const applyBtn = document.createElement('button');
-                applyBtn.className = 'apply-btn';
-                applyBtn.textContent = 'OK';
+                applyBtn.className = 'apply-btn-single';
+                applyBtn.textContent = 'Áp dụng';
+                applyBtn.title = 'Áp dụng số lượng cho ảnh này';
                 applyBtn.onclick = (e) => {
                     e.preventDefault();
-                    this.applyCustomQuantity(index, parseInt(input.value) || 1);
+                    const quantity = parseInt(input.value) || 1;
+                    this.applyCustomQuantityByKey(imageKey, quantity);
                 };
 
-                inputGroup.appendChild(decreaseBtn);
-                inputGroup.appendChild(input);
-                inputGroup.appendChild(increaseBtn);
-
                 controlsDiv.appendChild(label);
-                controlsDiv.appendChild(inputGroup);
+                controlsDiv.appendChild(input);
                 controlsDiv.appendChild(applyBtn);
 
                 item.appendChild(headerDiv);
                 item.appendChild(controlsDiv);
 
                 grid.appendChild(item);
+                displayIndex++;
             });
+
+            // Cập nhật số lượng ảnh unique trong UI
+            const uniqueCount = uniqueImagesMap.size;
+            const totalCount = this.printData.selectedImages.length;
+
+            // Thêm thông tin tổng quan vào header nếu cần
+            const customHeader = document.querySelector('.custom-header span');
+            if (customHeader && uniqueCount > 0) {
+                customHeader.textContent = `Chỉ định số lượng (${uniqueCount} ảnh gốc, ${totalCount} tổng)`;
+            }
         }
 
         fillAllPagesWithFirstImage() {
@@ -38504,43 +38635,126 @@
             this.showToast(`✅ Đã tạo ${quantity} bản sao của "${originalImage.name}"!`, 'success');
         }
 
-        applyAllCustomQuantities() {
-            const inputs = document.querySelectorAll('.distribution-grid .quantity-input');
-            const distributionPlan = [];
-
-            inputs.forEach(input => {
-                const imageIndex = parseInt(input.dataset.imageIndex);
-                const quantity = parseInt(input.value) || 1;
-                distributionPlan.push({ imageIndex, quantity });
-            });
-
-            if (distributionPlan.length === 0) {
-                this.showToast('❌ Không có thông tin phân bổ!', 'error');
+        // Hàm mới: Áp dụng số lượng theo imageKey thay vì index
+        applyCustomQuantityByKey(imageKey, quantity) {
+            if (this.printData.selectedImages.length === 0) {
+                this.showToast('❌ Không có ảnh nào!', 'error');
                 return;
             }
 
-            const originalImages = [...this.printData.selectedImages];
-            this.printData.selectedImages = [];
+            // Tìm tất cả ảnh có cùng imageKey
+            const imagesToRemove = [];
+            let originalImage = null;
 
-            let totalCopies = 0;
-            distributionPlan.forEach(({ imageIndex, quantity }) => {
-                if (imageIndex < originalImages.length) {
-                    const originalImage = originalImages[imageIndex];
-                    for (let i = 0; i < quantity; i++) {
-                        this.printData.selectedImages.push({
-                            ...originalImage,
-                            name: i === 0 ? originalImage.name : `${originalImage.name}_copy_${i + 1}`,
-                            id: originalImage.id + '_' + i
-                        });
-                        totalCopies++;
+            this.printData.selectedImages.forEach((img, index) => {
+                const currentKey = img.id?.split('_')[0] || img.data || img.src;
+                if (currentKey === imageKey) {
+                    imagesToRemove.push(index);
+                    if (!originalImage) {
+                        originalImage = { ...img };
+                        // Loại bỏ suffix _copy_X nếu có
+                        originalImage.name = img.name?.replace(/_copy_\d+$/, '') || img.name;
                     }
                 }
             });
 
+            if (!originalImage) {
+                this.showToast('❌ Không tìm thấy ảnh!', 'error');
+                return;
+            }
+
+            // Tạo các bản copy mới với số lượng chỉ định
+            const newCopies = [];
+            for (let i = 0; i < quantity; i++) {
+                newCopies.push({
+                    ...originalImage,
+                    name: i === 0 ? originalImage.name : `${originalImage.name}_copy_${i}`,
+                    id: `${imageKey}_${i}`
+                });
+            }
+
+            // Xóa tất cả ảnh cũ (theo thứ tự ngược để không ảnh hưởng index)
+            for (let i = imagesToRemove.length - 1; i >= 0; i--) {
+                this.printData.selectedImages.splice(imagesToRemove[i], 1);
+            }
+
+            // Thêm ảnh mới vào vị trí đầu tiên của ảnh cũ
+            const insertPosition = imagesToRemove[0] || this.printData.selectedImages.length;
+            this.printData.selectedImages.splice(insertPosition, 0, ...newCopies);
+
+            // Cập nhật UI
             this.updateSelectedImagesDisplay();
             this.updateTotalPages();
             this.updatePreview();
-            this.showToast(`✅ Đã áp dụng phân bổ tùy chỉnh cho ${totalCopies} ảnh!`, 'success');
+            this.updateCustomDistributionGrid(); // Cập nhật lại grid
+
+            this.showToast(`✅ Đã cập nhật "${originalImage.name}" thành ${quantity} bản!`, 'success');
+        }
+
+        applyAllCustomQuantities() {
+            // Hiển thị popup để nhập số lượng chung cho tất cả ảnh
+            const quantity = prompt('Nhập số lượng áp dụng cho TẤT CẢ ảnh:', '1');
+
+            // Người dùng hủy hoặc không nhập gì
+            if (quantity === null || quantity.trim() === '') {
+                return;
+            }
+
+            const quantityNum = parseInt(quantity);
+
+            // Validate số lượng
+            if (isNaN(quantityNum) || quantityNum < 1 || quantityNum > 999) {
+                this.showToast('❌ Số lượng phải từ 1 đến 999!', 'error');
+                return;
+            }
+
+            // Lấy tất cả unique images từ grid
+            const uniqueImagesMap = new Map();
+
+            this.printData.selectedImages.forEach((imageData) => {
+                const imageKey = imageData.id?.split('_')[0] || imageData.data || imageData.src;
+
+                if (!uniqueImagesMap.has(imageKey)) {
+                    uniqueImagesMap.set(imageKey, {
+                        data: { ...imageData },
+                        originalName: imageData.name?.replace(/_copy_\d+$/, '') || imageData.name
+                    });
+                }
+            });
+
+            if (uniqueImagesMap.size === 0) {
+                this.showToast('❌ Không có ảnh nào để áp dụng!', 'error');
+                return;
+            }
+
+            // Xóa tất cả ảnh hiện tại và tạo lại với số lượng mới
+            this.printData.selectedImages = [];
+
+            let totalImages = 0;
+            uniqueImagesMap.forEach((imageInfo, imageKey) => {
+                const originalImage = imageInfo.data;
+                originalImage.name = imageInfo.originalName;
+
+                for (let i = 0; i < quantityNum; i++) {
+                    this.printData.selectedImages.push({
+                        ...originalImage,
+                        name: i === 0 ? originalImage.name : `${originalImage.name}_copy_${i}`,
+                        id: `${imageKey}_${i}`
+                    });
+                    totalImages++;
+                }
+            });
+
+            // Cập nhật UI
+            this.updateSelectedImagesDisplay();
+            this.updateTotalPages();
+            this.updatePreview();
+            this.updateCustomDistributionGrid();
+
+            this.showToast(
+                `✅ Đã áp dụng số lượng ${quantityNum} cho ${uniqueImagesMap.size} ảnh (tổng ${totalImages} ảnh)!`,
+                'success'
+            );
         }
 
         updateDistributionButtonStates(activeAction) {
