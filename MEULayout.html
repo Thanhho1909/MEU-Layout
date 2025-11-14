@@ -18444,6 +18444,13 @@
                                     <div class="preset-desc">A4 dọc, ảnh 7×10cm, lề 5mm</div>
                                 </div>
                             </button>
+                            <button class="preset-card" data-preset="standard-9.5x9.5">
+                                <div class="preset-icon">🟦</div>
+                                <div class="preset-content">
+                                    <div class="preset-name">9.5×9.5 cm</div>
+                                    <div class="preset-desc">A4 ngang, ảnh 9.5×9.5cm, lề 5mm</div>
+                                </div>
+                            </button>
                             <button class="preset-card" data-preset="paper-10x15">
                                 <div class="preset-icon">🖼️</div>
                                 <div class="preset-content">
@@ -18512,6 +18519,7 @@
                                             <option value="4.74x6.6">Polaroid 5.5×8.5</option>
                                             <option value="5x15">5×15 cm (Bookmark)</option>
                                             <option value="6x9">6×9 cm (Hộ chiếu)</option>
+                                            <option value="9.5x9.5">9.5×9.5 cm (Vuông)</option>
                                             <option value="polaroid">54×67 mm (Mini Polaroid)</option>
                                             <option value="custom">Tùy chỉnh</option>
                                         </select>
@@ -18977,6 +18985,7 @@
                                         <select class="photo-size-elite" id="previewPhotoSize">
                                             <option value="5.5x8.5">5.5×8.5cm</option>
                                             <option value="6x9">6×9cm</option>
+                                            <option value="9.5x9.5">9.5×9.5cm</option>
                                             <option value="5x15">5×15cm</option>
                                             <option value="5x7.5">5×7.5cm</option>
                                             <option value="4x6">4×6cm</option>
@@ -36114,6 +36123,9 @@
                                 case '6x9':
                                     this.printData.config.photoSize = { width: 6, height: 9 };
                                     break;
+                                case '9.5x9.5':
+                                    this.printData.config.photoSize = { width: 9.5, height: 9.5 };
+                                    break;
                                 case '5x15':
                                     this.printData.config.photoSize = { width: 5, height: 15 };
                                     break;
@@ -43872,6 +43884,21 @@
                     this.printData.config.photoSize = { width: 7, height: 10 };
                     this.printData.config.printMode = 'single';
                     this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    break;
+                case 'standard-9.5x9.5':
+                    if (paperSizeSelect) paperSizeSelect.value = 'a4';
+                    if (photoSizeSelect) photoSizeSelect.value = '9.5x9.5';
+                    if (printModeSelect) printModeSelect.value = 'single';
+                    if (marginAll) marginAll.value = 5;
+                    this.printData.config.paperSize = { width: 297, height: 210 }; // A4 ngang (landscape)
+                    this.printData.config.photoSize = { width: 9.5, height: 9.5 }; // Ảnh vuông 9.5×9.5cm
+                    this.printData.config.printMode = 'single';
+                    this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.orientation = 'landscape';
+                    // Cập nhật UI orientation buttons
+                    document.querySelectorAll('.orient-btn, .orient-btn-elite').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.orient-btn[data-orientation="landscape"], .orient-btn-elite[data-orientation="landscape"]').forEach(b => b.classList.add('active'));
+                    this.showToast('📐 A4 ngang - ảnh 9.5×9.5cm vuông', 'success');
                     break;
                 case 'paper-10x15':
                     if (paperSizeSelect) paperSizeSelect.value = 'custom';
