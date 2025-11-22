@@ -42448,6 +42448,10 @@
                 printModeSelect.addEventListener('change', () => {
                     const mode = printModeSelect.value;
                     this.printData.config.printMode = mode;
+
+                    // Auto-switch to Print tab when changing print mode
+                    this.switchToTab('print');
+
                     this.toggleDuplexInterface(mode === 'duplex');
                     this.calculateLayout();
                 });
@@ -43627,6 +43631,13 @@
                 console.log('✅ Legacy duplexDistributionSection hidden');
             }
 
+            // Hide legacy canvas viewport entirely (contains both single and duplex canvas)
+            const canvasViewport = document.querySelector('.canvas-viewport');
+            if (canvasViewport) {
+                canvasViewport.style.display = 'none';
+                console.log('✅ Legacy canvas-viewport hidden');
+            }
+
             // Switch to dual canvas layout
             if (singleCanvasContainer) {
                 singleCanvasContainer.style.display = 'none';
@@ -43748,11 +43759,18 @@
             const duplexSection = document.getElementById('duplexClassificationSection');
             const singleCanvasContainer = document.getElementById('canvasContainer');
             const duplexCanvasContainer = document.getElementById('duplexCanvasContainer');
+            const canvasViewport = document.querySelector('.canvas-viewport');
 
             // Hide Unified Workspace
             if (unifiedWorkspace) {
                 unifiedWorkspace.style.display = 'none';
                 console.log('✅ Unified Workspace hidden');
+            }
+
+            // Show back legacy canvas viewport
+            if (canvasViewport) {
+                canvasViewport.style.display = 'block';
+                console.log('✅ Legacy canvas-viewport shown');
             }
 
             if (duplexControls) duplexControls.style.display = 'none';
