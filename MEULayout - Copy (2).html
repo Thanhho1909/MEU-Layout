@@ -20639,41 +20639,32 @@
                             </div>
                         </div>
 
-                        <!-- Quick Actions Toolbar V3 - Compact & Grouped -->
-                        <div class="duplex-quick-actions-v3">
-                            <!-- Primary Actions Group -->
-                            <div class="actions-group primary-group">
-                                <button class="qa-btn-v3 primary" id="autoClassifyBtnDuplex" title="Tự động nhận diện mặt trước/sau theo tên file">
-                                    <svg class="qa-icon"><use href="#icon-robot"></use></svg>
-                                    <span class="qa-label">Auto</span>
-                                </button>
-                                <button class="qa-btn-v3 primary" id="balanceDuplexBtn" title="Cân bằng số lượng ảnh 2 mặt">
-                                    <svg class="qa-icon"><use href="#icon-balance"></use></svg>
-                                    <span class="qa-label">Cân bằng</span>
-                                </button>
-                            </div>
-
-                            <!-- History Actions Group -->
-                            <div class="actions-group history-group">
-                                <button class="qa-btn-v3 icon-only" id="undoDuplexBtn" disabled title="Hoàn tác">
-                                    <svg class="qa-icon"><use href="#icon-undo"></use></svg>
-                                </button>
-                                <button class="qa-btn-v3 icon-only" id="redoDuplexBtn" disabled title="Làm lại">
-                                    <svg class="qa-icon"><use href="#icon-redo"></use></svg>
-                                </button>
-                            </div>
-
-                            <!-- Utility Actions Group -->
-                            <div class="actions-group utility-group">
-                                <button class="qa-btn-v3" id="swapDuplexBtn" title="Đổi mặt trước ↔ sau">
-                                    <svg class="qa-icon"><use href="#icon-swap"></use></svg>
-                                    <span class="qa-label">Swap</span>
-                                </button>
-                                <button class="qa-btn-v3 danger" id="clearAllDuplexBtn" title="Xóa tất cả ảnh">
-                                    <svg class="qa-icon"><use href="#icon-clean"></use></svg>
-                                    <span class="qa-label">Xóa hết</span>
-                                </button>
-                            </div>
+                        <!-- Quick Actions Toolbar - NEW -->
+                        <div class="duplex-quick-actions">
+                            <button class="quick-action-btn auto-classify-action" id="autoClassifyBtnDuplex" title="Tự động nhận diện mặt trước/sau theo tên file">
+                                <span class="qa-icon"><svg class="svg-icon"><use href="#icon-robot"></use></svg></span>
+                                <span class="qa-text">Tự động phân loại</span>
+                            </button>
+                            <button class="quick-action-btn" id="undoDuplexBtn" disabled title="Hoàn tác">
+                                <span class="qa-icon"><svg class="svg-icon"><use href="#icon-undo"></use></svg></span>
+                                <span class="qa-text">Hoàn tác</span>
+                            </button>
+                            <button class="quick-action-btn" id="redoDuplexBtn" disabled title="Làm lại">
+                                <span class="qa-icon"><svg class="svg-icon"><use href="#icon-redo"></use></svg></span>
+                                <span class="qa-text">Làm lại</span>
+                            </button>
+                            <button class="quick-action-btn" id="swapDuplexBtn" title="Đổi mặt trước ↔ sau">
+                                <span class="qa-icon"><svg class="svg-icon"><use href="#icon-swap"></use></svg></span>
+                                <span class="qa-text">Đổi chỗ</span>
+                            </button>
+                            <button class="quick-action-btn" id="clearAllDuplexBtn" title="Xóa tất cả">
+                                <span class="qa-icon"><svg class="svg-icon"><use href="#icon-clean"></use></svg></span>
+                                <span class="qa-text">Xóa hết</span>
+                            </button>
+                            <button class="quick-action-btn" id="balanceDuplexBtn" title="Cân bằng số ảnh">
+                                <span class="qa-icon"><svg class="svg-icon"><use href="#icon-balance"></use></svg></span>
+                                <span class="qa-text">Cân bằng</span>
+                            </button>
                         </div>
 
                         <!-- 2-Column Layout - NEW -->
@@ -20835,97 +20826,77 @@
                             </div>
                         </div>
 
-                        <!-- Preview Controls V3 - Compact & Organized -->
-                        <div class="preview-controls-v3">
-                            <!-- Primary Controls (Always Visible) -->
-                            <div class="controls-primary-bar">
-                                <!-- Navigation -->
-                                <div class="control-group nav-group">
-                                    <label class="group-label">Trang</label>
+                        <!-- Elite Controls: Maximum Productivity -->
+                        <div class="preview-controls-elite">
+                            <!-- Control Strip 1: Navigation & Core -->
+                            <div class="control-strip primary-strip">
+                                <div class="control-section nav-section">
+                                    <div class="section-label">Điều hướng</div>
                                     <div class="nav-controls">
-                                        <button class="nav-btn" id="prevPageBtn" disabled>‹</button>
-                                        <span class="page-display" id="pageIndicator">1/1</span>
-                                        <button class="nav-btn" id="nextPageBtn" disabled>›</button>
+                                        <button class="nav-btn-elite" id="prevPageBtn" disabled>‹</button>
+                                        <div class="page-display" id="pageIndicator">1/1</div>
+                                        <button class="nav-btn-elite" id="nextPageBtn" disabled>›</button>
+                                    </div>
+                                    <div class="duplex-toggle-elite" id="duplexPreviewControls" style="display: none;">
+                                        <button class="duplex-btn-elite active" id="frontSideBtn" data-side="front">Trước</button>
+                                        <button class="duplex-btn-elite" id="backSideBtn" data-side="back">Sau</button>
                                     </div>
                                 </div>
 
-                                <!-- Duplex Side Toggle (For Duplex Mode) -->
-                                <div class="control-group duplex-toggle-group" id="duplexPreviewControls" style="display: none;">
-                                    <label class="group-label">Mặt</label>
-                                    <div class="duplex-toggle-btns">
-                                        <button class="duplex-side-btn active" id="frontSideBtn" data-side="front">📄 Trước</button>
-                                        <button class="duplex-side-btn" id="backSideBtn" data-side="back">📃 Sau</button>
+                                <div class="control-section zoom-section">
+                                    <div class="section-label">Thu phóng</div>
+                                    <div class="zoom-controls-elite">
+                                        <button class="zoom-btn-elite" id="zoom25" data-zoom="0.25">25</button>
+                                        <button class="zoom-btn-elite" id="zoom50" data-zoom="0.5">50</button>
+                                        <button class="zoom-btn-elite active" id="zoom100" data-zoom="1">100</button>
+                                        <button class="zoom-btn-elite fit" id="zoomFit" data-zoom="fit">Fit</button>
                                     </div>
                                 </div>
 
-                                <!-- Zoom -->
-                                <div class="control-group zoom-group">
-                                    <label class="group-label">Zoom</label>
-                                    <div class="zoom-buttons">
-                                        <button class="zoom-btn" id="zoom25" data-zoom="0.25">25%</button>
-                                        <button class="zoom-btn" id="zoom50" data-zoom="0.5">50%</button>
-                                        <button class="zoom-btn active" id="zoom100" data-zoom="1">100%</button>
-                                        <button class="zoom-btn fit" id="zoomFit" data-zoom="fit">Fit</button>
+                                <div class="control-section orientation-section">
+                                    <div class="section-label">Hướng</div>
+                                    <div class="orientation-controls-elite">
+                                        <button class="orient-btn-elite active" data-orientation="portrait" title="Dọc">⬜</button>
+                                        <button class="orient-btn-elite" data-orientation="landscape" title="Ngang">▬</button>
                                     </div>
                                 </div>
 
-                                <!-- Orientation -->
-                                <div class="control-group orient-group">
-                                    <label class="group-label">Hướng</label>
-                                    <div class="orient-buttons">
-                                        <button class="orient-btn active" data-orientation="portrait" title="Dọc">⬜</button>
-                                        <button class="orient-btn" data-orientation="landscape" title="Ngang">▬</button>
+                                <!-- ⚙️ Duplex Physical Offset Controls -->
+                                <div class="control-section duplex-offset-section" id="duplexOffsetSection" style="display: none;">
+                                    <div class="section-label" title="Bù lệch vật lý khi in 2 mặt thủ công">🔧 Bù lệch</div>
+                                    <div class="offset-controls-elite">
+                                        <div class="offset-input-group">
+                                            <label title="Lệch trái: +mm, Lệch phải: -mm">X:</label>
+                                            <input type="number" id="duplexOffsetX" class="offset-input"
+                                                   value="0" step="0.1" min="-5" max="5"
+                                                   placeholder="0.0">
+                                            <span class="offset-unit">mm</span>
+                                        </div>
+                                        <div class="offset-input-group">
+                                            <label title="Lệch trên: +mm, Lệch dưới: -mm">Y:</label>
+                                            <input type="number" id="duplexOffsetY" class="offset-input"
+                                                   value="0" step="0.1" min="-5" max="5"
+                                                   placeholder="0.0">
+                                            <span class="offset-unit">mm</span>
+                                        </div>
+                                        <button class="calibration-btn-elite" id="calibrationTestBtn" title="Tạo trang test để đo lệch">📏 Test</button>
                                     </div>
                                 </div>
-
-                                <!-- Advanced Toggle Button -->
-                                <button class="advanced-toggle-btn" id="advancedToggleBtn" title="Hiện/Ẩn cài đặt nâng cao">
-                                    <svg class="svg-icon"><use href="#icon-settings"></use></svg>
-                                    <span>Nâng cao</span>
-                                    <span class="toggle-arrow">▼</span>
-                                </button>
                             </div>
 
-                            <!-- Advanced Controls (Collapsible) -->
-                            <div class="controls-advanced-panel collapsed" id="advancedControlsPanel">
-                                <!-- Duplex Offset (Only for Duplex Mode) -->
-                                <div class="advanced-section offset-section" id="duplexOffsetSection" style="display: none;">
-                                    <div class="section-header">
-                                        <span class="section-icon">🔧</span>
-                                        <span class="section-title">Bù lệch in 2 mặt</span>
-                                    </div>
-                                    <div class="section-content">
-                                        <div class="offset-inputs">
-                                            <div class="offset-input-group">
-                                                <label>X:</label>
-                                                <input type="number" id="duplexOffsetX" class="offset-input" value="0" step="0.1" min="-5" max="5">
-                                                <span class="unit">mm</span>
-                                            </div>
-                                            <div class="offset-input-group">
-                                                <label>Y:</label>
-                                                <input type="number" id="duplexOffsetY" class="offset-input" value="0" step="0.1" min="-5" max="5">
-                                                <span class="unit">mm</span>
-                                            </div>
-                                            <button class="test-btn" id="calibrationTestBtn" title="Tạo trang test">📏 Test</button>
+                            <!-- Control Strip 2: Advanced Features -->
+                            <div class="control-strip secondary-strip">
+                                <div class="control-section cutting-section">
+                                    <div class="section-label">Đường cắt</div>
+                                    <div class="cutting-controls-elite">
+                                        <button class="cut-toggle-elite active" id="toggleGuides">ON</button>
+                                        <div class="cut-types-elite" id="cuttingTypes">
+                                            <button class="cut-type-elite active" id="outerLines" data-type="outer" title="Viền ngoài">⬛</button>
+                                            <button class="cut-type-elite active" id="betweenLines" data-type="between" title="Giữa ảnh">⸬</button>
+                                            <button class="cut-type-elite active" id="previewCornerMarks" data-type="corner" title="Góc">╬</button>
+                                            <button class="cut-type-elite" id="gridLines" data-type="grid" title="Lưới">▦</button>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <!-- Cutting Guides -->
-                                <div class="advanced-section cutting-section">
-                                    <div class="section-header">
-                                        <span class="section-icon">✂</span>
-                                        <span class="section-title">Đường cắt</span>
-                                        <button class="cut-toggle-btn active" id="toggleGuides">ON</button>
-                                    </div>
-                                    <div class="section-content">
-                                        <div class="cut-options">
-                                            <button class="cut-option active" id="outerLines" data-type="outer" title="Viền ngoài">⬛</button>
-                                            <button class="cut-option active" id="betweenLines" data-type="between" title="Giữa ảnh">⸬</button>
-                                            <button class="cut-option active" id="previewCornerMarks" data-type="corner" title="Góc">╬</button>
-                                            <button class="cut-option" id="gridLines" data-type="grid" title="Lưới">▦</button>
-                                        </div>
-                                        <select class="cut-thickness" id="previewLineThickness">
+                                        <select class="cut-thickness-elite" id="previewLineThickness">
                                             <option value="0.25">0.25pt</option>
                                             <option value="0.5" selected>0.5pt</option>
                                             <option value="1">1.0pt</option>
@@ -20934,33 +20905,35 @@
                                     </div>
                                 </div>
 
-                                <!-- Paper & Photo Size -->
-                                <div class="advanced-section size-section">
-                                    <div class="section-header">
-                                        <span class="section-icon">📐</span>
-                                        <span class="section-title">Kích thước</span>
-                                    </div>
-                                    <div class="section-content">
-                                        <div class="size-selects">
-                                            <select class="size-select" id="previewPaperSize">
-                                                <option value="a4">A4</option>
-                                                <option value="a3">A3</option>
-                                                <option value="letter">Letter</option>
-                                                <option value="custom">Tùy chỉnh</option>
-                                            </select>
-                                            <select class="size-select" id="previewPhotoSize">
-                                                <option value="5.5x8.5">5.5×8.5cm</option>
-                                                <option value="6x9">6×9cm</option>
-                                                <option value="9.5x9.5">9.5×9.5cm</option>
-                                                <option value="custom">Tùy chỉnh</option>
-                                            </select>
-                                        </div>
+                                <div class="control-section size-section">
+                                    <div class="section-label">Kích thước</div>
+                                    <div class="size-controls-elite">
+                                        <select class="paper-size-elite" id="previewPaperSize">
+                                            <option value="a4">A4</option>
+                                            <option value="a3">A3</option>
+                                            <option value="letter">Letter</option>
+                                            <option value="5x7">5×7"</option>
+                                            <option value="4x6">4×6"</option>
+                                            <option value="custom">Tùy chỉnh</option>
+                                        </select>
+                                        <select class="photo-size-elite" id="previewPhotoSize">
+                                            <option value="5.5x8.5">5.5×8.5cm</option>
+                                            <option value="6x9">6×9cm</option>
+                                            <option value="9.5x9.5">9.5×9.5cm</option>
+                                            <option value="5x15">5×15cm</option>
+                                            <option value="5x7.5">5×7.5cm</option>
+                                            <option value="4x6">4×6cm</option>
+                                            <option value="custom">Tùy chỉnh</option>
+                                        </select>
+
                                         <!-- Custom Size Inputs -->
                                         <div class="custom-size-inputs" id="previewCustomSizeInputs" style="display: none;">
-                                            <input type="number" id="previewCustomWidth" placeholder="W" min="1" max="50" step="0.1" value="5">
-                                            <span>×</span>
-                                            <input type="number" id="previewCustomHeight" placeholder="H" min="1" max="50" step="0.1" value="15">
-                                            <span class="unit">cm</span>
+                                            <div class="custom-input-row">
+                                                <input type="number" id="previewCustomWidth" placeholder="Rộng" min="1" max="50" step="0.1" value="5">
+                                                <span>×</span>
+                                                <input type="number" id="previewCustomHeight" placeholder="Cao" min="1" max="50" step="0.1" value="15">
+                                                <span class="unit">cm</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -24893,429 +24866,6 @@
 
             .qa-text {
                 font-size: 0.9em;
-            }
-
-            /* === Quick Actions V3 - Compact & Grouped === */
-            .duplex-quick-actions-v3 {
-                display: flex;
-                gap: 12px;
-                padding: 10px 16px;
-                background: linear-gradient(to bottom, #ffffff, #f8fafc);
-                border-bottom: 1px solid #e5e7eb;
-                flex-wrap: wrap;
-                align-items: center;
-            }
-
-            .actions-group {
-                display: flex;
-                gap: 6px;
-                padding-right: 12px;
-                border-right: 1px solid #e5e7eb;
-            }
-
-            .actions-group:last-child {
-                border-right: none;
-            }
-
-            .qa-btn-v3 {
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                padding: 6px 12px;
-                border: 1px solid #d1d5db;
-                background: white;
-                border-radius: 6px;
-                cursor: pointer;
-                transition: all 0.15s ease;
-                font-size: 0.85em;
-                font-weight: 500;
-                color: #374151;
-            }
-
-            .qa-btn-v3 .qa-icon {
-                width: 16px;
-                height: 16px;
-            }
-
-            .qa-btn-v3.icon-only {
-                padding: 6px 8px;
-            }
-
-            .qa-btn-v3.icon-only .qa-label {
-                display: none;
-            }
-
-            .qa-btn-v3.primary {
-                background: linear-gradient(to bottom, #3b82f6, #2563eb);
-                color: white;
-                border-color: #2563eb;
-            }
-
-            .qa-btn-v3.primary:hover:not(:disabled) {
-                background: linear-gradient(to bottom, #2563eb, #1d4ed8);
-                transform: translateY(-1px);
-                box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25);
-            }
-
-            .qa-btn-v3.danger {
-                border-color: #fca5a5;
-                color: #dc2626;
-            }
-
-            .qa-btn-v3.danger:hover:not(:disabled) {
-                background: #fee2e2;
-                border-color: #dc2626;
-            }
-
-            .qa-btn-v3:hover:not(:disabled) {
-                background: #f9fafb;
-                border-color: #9ca3af;
-                transform: translateY(-1px);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-            }
-
-            .qa-btn-v3:active:not(:disabled) {
-                transform: translateY(0);
-            }
-
-            .qa-btn-v3:disabled {
-                opacity: 0.4;
-                cursor: not-allowed;
-            }
-
-            /* === Preview Controls V3 - Compact & Organized === */
-            .preview-controls-v3 {
-                border-bottom: 1px solid #e5e7eb;
-                background: white;
-            }
-
-            .controls-primary-bar {
-                display: flex;
-                gap: 16px;
-                padding: 10px 16px;
-                background: #fafbfc;
-                border-bottom: 1px solid #e5e7eb;
-                flex-wrap: wrap;
-                align-items: center;
-            }
-
-            .control-group {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-            }
-
-            .group-label {
-                font-size: 0.7em;
-                font-weight: 600;
-                color: #6b7280;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            .nav-controls {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: white;
-                border: 1px solid #d1d5db;
-                border-radius: 6px;
-                padding: 2px;
-            }
-
-            .nav-btn {
-                width: 28px;
-                height: 28px;
-                border: none;
-                background: transparent;
-                cursor: pointer;
-                border-radius: 4px;
-                transition: all 0.15s;
-                font-size: 1.2em;
-            }
-
-            .nav-btn:hover:not(:disabled) {
-                background: #f3f4f6;
-            }
-
-            .nav-btn:disabled {
-                opacity: 0.3;
-                cursor: not-allowed;
-            }
-
-            .page-display {
-                padding: 0 8px;
-                font-size: 0.85em;
-                font-weight: 500;
-                color: #374151;
-                min-width: 50px;
-                text-align: center;
-            }
-
-            .duplex-toggle-btns {
-                display: flex;
-                gap: 4px;
-                background: white;
-                border: 1px solid #d1d5db;
-                border-radius: 6px;
-                padding: 2px;
-            }
-
-            .duplex-side-btn {
-                padding: 6px 12px;
-                border: none;
-                background: transparent;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: all 0.15s;
-                font-size: 0.85em;
-                font-weight: 500;
-                color: #6b7280;
-            }
-
-            .duplex-side-btn.active {
-                background: linear-gradient(to bottom, #3b82f6, #2563eb);
-                color: white;
-            }
-
-            .duplex-side-btn:hover:not(.active) {
-                background: #f3f4f6;
-            }
-
-            .zoom-buttons, .orient-buttons {
-                display: flex;
-                gap: 4px;
-                background: white;
-                border: 1px solid #d1d5db;
-                border-radius: 6px;
-                padding: 2px;
-            }
-
-            .zoom-btn, .orient-btn {
-                padding: 6px 10px;
-                border: none;
-                background: transparent;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: all 0.15s;
-                font-size: 0.8em;
-                font-weight: 500;
-                color: #6b7280;
-            }
-
-            .zoom-btn.active, .orient-btn.active {
-                background: #3b82f6;
-                color: white;
-            }
-
-            .zoom-btn:hover:not(.active), .orient-btn:hover:not(.active) {
-                background: #f3f4f6;
-            }
-
-            .advanced-toggle-btn {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                padding: 8px 12px;
-                border: 1px solid #d1d5db;
-                background: white;
-                border-radius: 6px;
-                cursor: pointer;
-                transition: all 0.15s;
-                font-size: 0.85em;
-                font-weight: 500;
-                margin-left: auto;
-            }
-
-            .advanced-toggle-btn:hover {
-                background: #f9fafb;
-                border-color: #9ca3af;
-            }
-
-            .toggle-arrow {
-                font-size: 0.7em;
-                transition: transform 0.2s;
-            }
-
-            .advanced-toggle-btn.expanded .toggle-arrow {
-                transform: rotate(180deg);
-            }
-
-            .controls-advanced-panel {
-                max-height: 0;
-                overflow: hidden;
-                transition: max-height 0.3s ease;
-                background: #f9fafb;
-            }
-
-            .controls-advanced-panel:not(.collapsed) {
-                max-height: 400px;
-                overflow-y: auto;
-            }
-
-            .advanced-section {
-                padding: 12px 16px;
-                border-bottom: 1px solid #e5e7eb;
-            }
-
-            .advanced-section:last-child {
-                border-bottom: none;
-            }
-
-            .section-header {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                margin-bottom: 10px;
-            }
-
-            .section-icon {
-                font-size: 1.1em;
-            }
-
-            .section-title {
-                font-size: 0.85em;
-                font-weight: 600;
-                color: #374151;
-            }
-
-            .section-content {
-                padding-left: 24px;
-            }
-
-            .offset-inputs {
-                display: flex;
-                gap: 10px;
-                align-items: center;
-            }
-
-            .offset-input-group {
-                display: flex;
-                align-items: center;
-                gap: 4px;
-            }
-
-            .offset-input-group label {
-                font-size: 0.8em;
-                font-weight: 600;
-                color: #6b7280;
-            }
-
-            .offset-input {
-                width: 60px;
-                padding: 4px 6px;
-                border: 1px solid #d1d5db;
-                border-radius: 4px;
-                font-size: 0.85em;
-                text-align: center;
-            }
-
-            .offset-input-group .unit {
-                font-size: 0.75em;
-                color: #9ca3af;
-            }
-
-            .test-btn {
-                padding: 6px 10px;
-                border: 1px solid #d1d5db;
-                background: white;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 0.8em;
-                transition: all 0.15s;
-            }
-
-            .test-btn:hover {
-                background: #f9fafb;
-            }
-
-            .cut-toggle-btn {
-                padding: 4px 12px;
-                border: 1px solid #d1d5db;
-                background: white;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 0.75em;
-                font-weight: 600;
-                margin-left: auto;
-                transition: all 0.15s;
-            }
-
-            .cut-toggle-btn.active {
-                background: #10b981;
-                color: white;
-                border-color: #10b981;
-            }
-
-            .cut-options {
-                display: flex;
-                gap: 6px;
-                margin-bottom: 8px;
-            }
-
-            .cut-option {
-                width: 32px;
-                height: 32px;
-                border: 1px solid #d1d5db;
-                background: white;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 1em;
-                transition: all 0.15s;
-            }
-
-            .cut-option.active {
-                background: #3b82f6;
-                color: white;
-                border-color: #3b82f6;
-            }
-
-            .cut-option:hover:not(.active) {
-                background: #f3f4f6;
-            }
-
-            .cut-thickness {
-                width: 100%;
-                padding: 6px;
-                border: 1px solid #d1d5db;
-                border-radius: 4px;
-                font-size: 0.85em;
-            }
-
-            .size-selects {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-                margin-bottom: 8px;
-            }
-
-            .size-select {
-                padding: 6px 8px;
-                border: 1px solid #d1d5db;
-                border-radius: 4px;
-                font-size: 0.85em;
-                background: white;
-            }
-
-            .custom-size-inputs {
-                display: flex;
-                gap: 6px;
-                align-items: center;
-            }
-
-            .custom-size-inputs input {
-                flex: 1;
-                padding: 6px;
-                border: 1px solid #d1d5db;
-                border-radius: 4px;
-                font-size: 0.85em;
-                text-align: center;
-            }
-
-            .custom-size-inputs .unit {
-                font-size: 0.8em;
-                color: #9ca3af;
-                font-weight: 500;
             }
 
             /* 2-Column Layout */
@@ -41970,26 +41520,6 @@
 
             // ⚙️ Duplex Physical Offset Controls
             this.setupDuplexOffsetControls();
-
-            // 🎯 V3: Advanced Controls Toggle
-            const advancedToggleBtn = document.getElementById('advancedToggleBtn');
-            const advancedPanel = document.getElementById('advancedControlsPanel');
-
-            if (advancedToggleBtn && advancedPanel) {
-                advancedToggleBtn.addEventListener('click', () => {
-                    const isCollapsed = advancedPanel.classList.contains('collapsed');
-
-                    if (isCollapsed) {
-                        // Expand
-                        advancedPanel.classList.remove('collapsed');
-                        advancedToggleBtn.classList.add('expanded');
-                    } else {
-                        // Collapse
-                        advancedPanel.classList.add('collapsed');
-                        advancedToggleBtn.classList.remove('expanded');
-                    }
-                });
-            }
         }
 
         setupDuplexOffsetControls() {
