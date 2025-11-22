@@ -42445,16 +42445,55 @@
 
             const printModeSelect = document.getElementById('printModeSelect');
             if (printModeSelect) {
+                // Prevent duplicate listeners
+                if (this._printModeListenerAdded) {
+                    console.log('⚠️ printModeSelect listener already added, skipping...');
+                    return;
+                }
+                this._printModeListenerAdded = true;
+
+                console.log('✅ printModeSelect found and setting up listener');
+
                 printModeSelect.addEventListener('change', () => {
+                    console.log('🔄 printModeSelect changed!');
                     const mode = printModeSelect.value;
+                    console.log('🔄 Selected mode:', mode);
+
                     this.printData.config.printMode = mode;
 
-                    // Auto-switch to Print tab when changing print mode
-                    this.switchToTab('print');
+                    // ALWAYS switch to Print tab when changing print mode
+                    const printSection = document.getElementById('printSection');
+                    const printTab = document.getElementById('printTab');
 
+                    console.log('🔄 ALWAYS Switching to Print tab...');
+
+                    // Remove active from all tabs and sections
+                    document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
+                    document.querySelectorAll('.function-section').forEach(section => {
+                        section.classList.remove('active');
+                        section.style.display = 'none';
+                    });
+
+                    // Activate print tab and section
+                    if (printTab) {
+                        printTab.classList.add('active');
+                        console.log('✅ printTab activated');
+                    }
+                    if (printSection) {
+                        printSection.classList.add('active');
+                        printSection.style.display = 'block';
+                        console.log('✅ printSection activated and displayed');
+                    }
+
+                    console.log('🔄 Calling toggleDuplexInterface with isDuplex:', mode === 'duplex');
                     this.toggleDuplexInterface(mode === 'duplex');
+
+                    console.log('🔄 Calling calculateLayout...');
                     this.calculateLayout();
+                    console.log('✅ printModeSelect change handler completed');
                 });
+            } else {
+                console.error('❌ printModeSelect NOT found!');
             }
 
             // Setup inline duplex flip buttons
