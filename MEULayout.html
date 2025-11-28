@@ -52517,7 +52517,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                         const mirroredCenterY = availableAreaCenterY - distanceFromCenterY;
 
                         mirroredX = mirroredCenterX - photoWidthPx / 2;
-                        mirroredY = mirroredCenterY - photoHeightPx / 2;
+                        mirroredY = originalY; // ✅ FIX: Y GIỮ NGUYÊN - CHỈ MIRROR X!
 
                         console.log(`?? PORTRAIT - Xoay 180?: (${originalX.toFixed(0)}, ${originalY.toFixed(0)})   (${mirroredX.toFixed(0)}, ${mirroredY.toFixed(0)})`);
                     }
@@ -52540,7 +52540,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                             const distanceFromCenter = originalCenterY - availableAreaCenterY;
                             const mirroredCenterY = availableAreaCenterY - distanceFromCenter;
                             mirroredX = originalX; // X không đổi
-                            mirroredY = mirroredCenterY - photoHeightPx / 2;
+                            mirroredY = originalY; // ✅ SHORT-EDGE cũng chỉ mirror X
 
                             // Validation cho short-edge
                             const centerY = canvas.height / 2;
@@ -53578,7 +53578,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     const mirroredCenterY = availableAreaCenterY - distanceFromCenterY;
 
                     mirroredX = mirroredCenterX - photoWidthPx / 2;
-                    mirroredY = mirroredCenterY - photoHeightPx / 2;
+                    mirroredY = originalY; // ✅ FIX: Y GIỮ NGUYÊN - CHỈ MIRROR X!
 
                     console.log(`🔄 PORTRAIT - Xoay 180°: (${originalX.toFixed(0)}, ${originalY.toFixed(0)}) → (${mirroredX.toFixed(0)}, ${mirroredY.toFixed(0)})`);
                 } else {
@@ -53602,7 +53602,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                         const distanceFromCenter = originalCenterY - availableAreaCenterY;
                         const mirroredCenterY = availableAreaCenterY - distanceFromCenter;
                         mirroredX = originalX; // X không đổi
-                        mirroredY = mirroredCenterY - photoHeightPx / 2;
+                        mirroredY = originalY; // ✅ SHORT-EDGE cũng chỉ mirror X
 
                         console.log(`↕️ LANDSCAPE - Mirror Y: (${originalX.toFixed(0)}, ${originalY.toFixed(0)}) → (${mirroredX.toFixed(0)}, ${mirroredY.toFixed(0)})`);
                     }
