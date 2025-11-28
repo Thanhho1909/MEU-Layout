@@ -21163,6 +21163,39 @@
                         </div>
                     </div>
 
+                    <!-- Layout History Section -->
+                    <div class="layout-history-section" id="layoutHistorySection">
+                        <div class="history-header">
+                            <h3>
+                                <svg class="svg-icon"><use href="#icon-clock"></use></svg>
+                                Lịch sử Layout
+                            </h3>
+                            <div class="history-actions">
+                                <button class="history-action-btn" id="clearHistoryBtn" title="Xóa tất cả">
+                                    <svg class="svg-icon"><use href="#icon-trash"></use></svg>
+                                    <span class="action-text">Xóa tất cả</span>
+                                </button>
+                                <button class="history-toggle-btn active" id="toggleHistoryBtn" title="Thu gọn">
+                                    <span class="toggle-icon">▲</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="history-content" id="historyContent">
+                            <div class="history-search" id="historySearch" style="display: none;">
+                                <input type="text" id="historySearchInput" placeholder="🔍 Tìm theo tên, kích thước...">
+                            </div>
+                            <div class="history-list" id="historyList">
+                                <div class="no-history-message">
+                                    <span class="no-history-icon">
+                                        <svg class="svg-icon"><use href="#icon-clock"></use></svg>
+                                    </span>
+                                    <p>Chưa có lịch sử</p>
+                                    <small>Xuất PDF/JPG để lưu layout vào lịch sử</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Compact Configuration Panel -->
                     <div class="print-config-compact" id="printConfigCompact">
                         <!-- Essential Settings Card -->
@@ -22900,7 +22933,282 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             .preset-pill.active .pill-icon {
                 color: white;
             }
-            
+
+            /* Layout History Section */
+            .layout-history-section {
+                margin: 20px 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+                border-radius: 16px;
+                border: 2px solid #0ea5e9;
+                box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+            }
+
+            .history-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 16px;
+                padding-bottom: 12px;
+                border-bottom: 2px dashed #0ea5e9;
+            }
+
+            .history-header h3 {
+                margin: 0;
+                font-size: 1.1em;
+                color: #075985;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .history-actions {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+
+            .history-action-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 14px;
+                background: white;
+                border: 2px solid #0ea5e9;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 0.85em;
+                font-weight: 600;
+                color: #0369a1;
+            }
+
+            .history-action-btn:hover {
+                background: #e0f2fe;
+                border-color: #0284c7;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(2, 132, 199, 0.2);
+            }
+
+            .history-toggle-btn {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                border: 2px solid #0ea5e9;
+                background: white;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+            }
+
+            .history-toggle-btn:hover {
+                background: #e0f2fe;
+                border-color: #0284c7;
+            }
+
+            .history-toggle-btn.active .toggle-icon {
+                transform: rotate(0deg);
+            }
+
+            .history-toggle-btn:not(.active) .toggle-icon {
+                transform: rotate(180deg);
+            }
+
+            .history-content {
+                max-height: 400px;
+                overflow-y: auto;
+                transition: max-height 0.3s ease, opacity 0.3s ease;
+            }
+
+            .history-content.collapsed {
+                max-height: 0;
+                opacity: 0;
+                overflow: hidden;
+            }
+
+            .history-search {
+                margin-bottom: 12px;
+            }
+
+            .history-search input {
+                width: 100%;
+                padding: 10px 14px;
+                border: 2px solid #bae6fd;
+                border-radius: 10px;
+                font-size: 0.9em;
+                transition: all 0.2s ease;
+            }
+
+            .history-search input:focus {
+                outline: none;
+                border-color: #0ea5e9;
+                box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+            }
+
+            .history-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .no-history-message {
+                text-align: center;
+                padding: 40px 20px;
+                color: #0c4a6e;
+            }
+
+            .no-history-icon {
+                font-size: 3em;
+                display: block;
+                margin-bottom: 12px;
+                opacity: 0.5;
+            }
+
+            .no-history-message p {
+                margin: 8px 0;
+                font-weight: 600;
+                font-size: 1.05em;
+            }
+
+            .no-history-message small {
+                color: #0369a1;
+                font-size: 0.9em;
+            }
+
+            .history-item {
+                position: relative;
+                background: white;
+                border: 2px solid #bae6fd;
+                border-radius: 12px;
+                padding: 16px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .history-item:hover {
+                border-color: #0ea5e9;
+                background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(14, 165, 233, 0.2);
+            }
+
+            .history-item.pinned {
+                border-color: #fbbf24;
+                background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            }
+
+            .history-item.pinned::before {
+                content: "📌";
+                position: absolute;
+                top: 8px;
+                left: 8px;
+                font-size: 1.2em;
+            }
+
+            .history-item-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .history-item-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .history-item-name {
+                font-weight: 700;
+                color: #075985;
+                font-size: 1em;
+                margin-bottom: 4px;
+                word-wrap: break-word;
+            }
+
+            .history-item-name.editable:hover {
+                text-decoration: underline;
+            }
+
+            .history-item-time {
+                font-size: 0.8em;
+                color: #64748b;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .history-item-details {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                font-size: 0.85em;
+                color: #0c4a6e;
+            }
+
+            .history-detail-tag {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 10px;
+                background: #e0f2fe;
+                border-radius: 6px;
+                font-weight: 500;
+            }
+
+            .history-item-stats {
+                font-size: 0.8em;
+                color: #0369a1;
+                padding-top: 8px;
+                border-top: 1px dashed #bae6fd;
+            }
+
+            .history-item-actions {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                display: flex;
+                gap: 4px;
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+
+            .history-item:hover .history-item-actions {
+                opacity: 1;
+            }
+
+            .history-item-action {
+                width: 28px;
+                height: 28px;
+                border-radius: 6px;
+                border: none;
+                background: white;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1em;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .history-item-action:hover {
+                background: #0ea5e9;
+                color: white;
+                transform: scale(1.1);
+            }
+
+            .history-item-action.pin-action.pinned {
+                background: #fbbf24;
+                color: white;
+                opacity: 1;
+            }
+
             /* Compact Configuration */
             .print-config-compact {
                 display: flex;
@@ -42521,6 +42829,9 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
 
             // Ensure gallery images (kho ảnh) are displayed in print section
             this.updateSourceGrid();
+
+            // Initialize Layout History
+            this.initializeLayoutHistory();
         }
 
         setupPrintEventListeners() {
@@ -52129,6 +52440,9 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             
             this.downloadBlob(zipBlob, zipFileName);
             this.showToast(`✅ Đã tạo xong ${this.printData.totalPages} trang JPG ${dpi}DPI kích thước ${paperWidthMm}×${paperHeightMm}mm (ZIP)`, 'success');
+
+            // Save to Layout History
+            this.saveCurrentLayoutToHistory('JPG ZIP', zipFileName);
         }
 
         async generateDuplexJPGZip() {
@@ -52249,8 +52563,11 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
-            
+
             this.showToast(`✅ Đã tải xong ${this.printData.totalPages} file JPG ${dpi}DPI kích thước ${paperWidthMm}×${paperHeightMm}mm (Riêng lẻ)`, 'success');
+
+            // Save to Layout History
+            this.saveCurrentLayoutToHistory('JPG', `${this.printData.totalPages} files`);
         }
 
         async generateDuplexJPGIndividual() {
@@ -52366,7 +52683,10 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             }
 
             this.showToast(`✅ Đã tạo xong ${fileCount} file JPG duplex (${totalPages} trang, ${paperWidthMm}×${paperHeightMm}mm, ${dpi}DPI)`, 'success');
-            
+
+            // Save to Layout History
+            this.saveCurrentLayoutToHistory('JPG Duplex', `${fileCount} files`);
+
             } catch (error) {
                 console.error('Error in generateDuplexJPGIndividual:', error);
                 this.showToast('⚠️ Lỗi khi tạo file JPG duplex!', 'error');
@@ -52785,6 +53105,9 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             
             pdf.save(pdfFileName);
             this.showToast(`✅ Đã tạo xong file PDF ${config.dpi}DPI kích thước ${paperWidthMm}×${paperHeightMm}mm (WYSIWYG)`, 'success');
+
+            // Save to Layout History
+            this.saveCurrentLayoutToHistory('PDF', pdfFileName);
         }
 
         async generateDuplexPDF() {
@@ -52886,6 +53209,9 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             if (frontPdf) {
                 const frontFileName = `FRONT_duplex-${config.duplexFlip}_${paperWidthMm}x${paperHeightMm}mm_${config.dpi}DPI${guidesInfo}_${timestamp}.pdf`;
                 frontPdf.save(frontFileName);
+
+                // Save to Layout History (Front)
+                this.saveCurrentLayoutToHistory('PDF Duplex Front', frontFileName);
             }
 
             if (backPdf) {
@@ -52893,6 +53219,9 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 const backFileName = `BACK_duplex-${config.duplexFlip}_${paperWidthMm}x${paperHeightMm}mm_${config.dpi}DPI${guidesInfo}_${timestamp}.pdf`;
                 backPdf.save(backFileName);
+
+                // Save to Layout History (Back)
+                this.saveCurrentLayoutToHistory('PDF Duplex Back', backFileName);
             }
 
             if (generateBtn) {
@@ -54464,6 +54793,292 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
         }
 
         // ============ END SAVED PRESETS SECTION ============
+
+        // ============ LAYOUT HISTORY SECTION ============
+
+        initializeLayoutHistory() {
+            this.layoutHistory = this.loadLayoutHistory();
+            this.renderLayoutHistory();
+            this.setupLayoutHistoryEventListeners();
+        }
+
+        loadLayoutHistory() {
+            try {
+                const raw = localStorage.getItem('meu_layout_history');
+                return raw ? JSON.parse(raw) : [];
+            } catch (error) {
+                console.error('Failed to load layout history:', error);
+                return [];
+            }
+        }
+
+        saveLayoutHistory() {
+            try {
+                // Keep only latest 20 items (pinned items don't count towards limit)
+                const pinned = this.layoutHistory.filter(item => item.isPinned);
+                const unpinned = this.layoutHistory.filter(item => !item.isPinned).slice(0, 20);
+                this.layoutHistory = [...pinned, ...unpinned];
+
+                localStorage.setItem('meu_layout_history', JSON.stringify(this.layoutHistory));
+            } catch (error) {
+                console.error('Failed to save layout history:', error);
+            }
+        }
+
+        saveCurrentLayoutToHistory(exportType, fileName) {
+            const config = this.printData.config;
+            const layout = this.printData.gridLayout;
+
+            if (!config || !layout || !this.printData.selectedImages || this.printData.selectedImages.length === 0) {
+                return; // Don't save empty layouts
+            }
+
+            const historyItem = {
+                id: Date.now(),
+                name: this.generateLayoutName(config, layout),
+                timestamp: Date.now(),
+                exportType: exportType,
+                fileName: fileName,
+                totalImages: this.printData.selectedImages.length,
+                totalPages: this.printData.totalPages,
+                grid: `${layout.cols}×${layout.rows}`,
+                config: {
+                    photoSize: { ...config.photoSize },
+                    paperSize: { ...config.paperSize },
+                    margins: { ...config.margins },
+                    gutter: { ...config.gutter },
+                    orientation: config.orientation,
+                    printMode: config.printMode,
+                    fitMode: config.fitMode
+                },
+                stats: {
+                    usageCount: 1,
+                    lastUsed: Date.now()
+                },
+                isPinned: false
+            };
+
+            this.layoutHistory = this.layoutHistory || [];
+            this.layoutHistory.unshift(historyItem);
+            this.saveLayoutHistory();
+            this.renderLayoutHistory();
+
+            this.showToast('💾 Đã lưu layout vào lịch sử', 'success');
+        }
+
+        generateLayoutName(config, layout) {
+            const photoSize = `${config.photoSize.width}×${config.photoSize.height}cm`;
+            const grid = `${layout.cols}×${layout.rows}`;
+            const total = layout.cols * layout.rows;
+            return `Layout ${photoSize} - ${grid} = ${total} ảnh`;
+        }
+
+        renderLayoutHistory() {
+            const historyList = document.getElementById('historyList');
+            if (!historyList) return;
+
+            if (!this.layoutHistory || this.layoutHistory.length === 0) {
+                historyList.innerHTML = `
+                    <div class="no-history-message">
+                        <span class="no-history-icon">
+                            <svg class="svg-icon"><use href="#icon-clock"></use></svg>
+                        </span>
+                        <p>Chưa có lịch sử</p>
+                        <small>Xuất PDF/JPG để lưu layout vào lịch sử</small>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = this.layoutHistory.map(item => this.renderHistoryItem(item)).join('');
+            historyList.innerHTML = html;
+        }
+
+        renderHistoryItem(item) {
+            const date = new Date(item.timestamp);
+            const timeStr = this.formatHistoryTime(date);
+            const pinnedClass = item.isPinned ? 'pinned' : '';
+
+            return `
+                <div class="history-item ${pinnedClass}" data-id="${item.id}" onclick="converter.loadLayoutFromHistory(${item.id})">
+                    <div class="history-item-header">
+                        <div class="history-item-info">
+                            <div class="history-item-name editable" onclick="event.stopPropagation(); converter.renameHistoryItem(${item.id})">${item.name}</div>
+                            <div class="history-item-time">⏰ ${timeStr}</div>
+                        </div>
+                    </div>
+                    <div class="history-item-details">
+                        <span class="history-detail-tag">📄 ${item.config.paperSize.width}×${item.config.paperSize.height}mm</span>
+                        <span class="history-detail-tag">📐 ${item.grid} = ${item.totalImages} ảnh</span>
+                        <span class="history-detail-tag">✂️ Gutter: ${item.config.gutter.x}×${item.config.gutter.y}mm</span>
+                    </div>
+                    <div class="history-item-stats">
+                        ✅ Đã xuất: ${item.totalImages} ảnh (${item.totalPages} trang) • ${item.exportType}
+                    </div>
+                    <div class="history-item-actions">
+                        <button class="history-item-action pin-action ${item.isPinned ? 'pinned' : ''}"
+                                onclick="event.stopPropagation(); converter.togglePinHistory(${item.id})"
+                                title="${item.isPinned ? 'Bỏ ghim' : 'Ghim'}">
+                            📌
+                        </button>
+                        <button class="history-item-action"
+                                onclick="event.stopPropagation(); converter.deleteHistoryItem(${item.id})"
+                                title="Xóa">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        formatHistoryTime(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Vừa xong';
+            if (diffMins < 60) return `${diffMins} phút trước`;
+            if (diffHours < 24) return `${diffHours} giờ trước`;
+            if (diffDays === 1) return 'Hôm qua';
+            if (diffDays < 7) return `${diffDays} ngày trước`;
+
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        loadLayoutFromHistory(id) {
+            const item = this.layoutHistory.find(h => h.id === id);
+            if (!item) return;
+
+            const config = item.config;
+
+            // Apply config
+            this.printData.config.photoSize = { ...config.photoSize };
+            this.printData.config.paperSize = { ...config.paperSize };
+            this.printData.config.margins = { ...config.margins };
+            this.printData.config.gutter = { ...config.gutter };
+            this.printData.config.orientation = config.orientation;
+            this.printData.config.printMode = config.printMode;
+            this.printData.config.fitMode = config.fitMode;
+
+            // Update UI inputs
+            this.updateUIFromConfig(config);
+
+            // Recalculate layout
+            this.calculateLayout();
+            this.updatePreview();
+
+            // Update usage stats
+            item.stats.usageCount++;
+            item.stats.lastUsed = Date.now();
+            this.saveLayoutHistory();
+
+            this.showToast(`✅ Đã tải layout: ${item.name}`, 'success');
+        }
+
+        updateUIFromConfig(config) {
+            // Update paper size
+            const paperSizeSelect = document.getElementById('paperSizeSelect');
+            if (paperSizeSelect) paperSizeSelect.value = 'custom';
+
+            // Update photo size
+            const photoSizeSelect = document.getElementById('photoSizeSelect');
+            if (photoSizeSelect) photoSizeSelect.value = 'custom';
+
+            const photoWidth = document.getElementById('previewCustomWidth') || document.getElementById('photoWidth');
+            const photoHeight = document.getElementById('previewCustomHeight') || document.getElementById('photoHeight');
+            if (photoWidth) photoWidth.value = config.photoSize.width;
+            if (photoHeight) photoHeight.value = config.photoSize.height;
+
+            // Update margins
+            const marginAll = document.getElementById('marginAll');
+            if (marginAll) marginAll.value = config.margins.top;
+            ['Top', 'Bottom', 'Left', 'Right'].forEach(side => {
+                const input = document.getElementById(`margin${side}`);
+                if (input) input.value = config.margins[side.toLowerCase()];
+            });
+
+            // Update gutter
+            const gutterX = document.getElementById('gutterX');
+            const gutterY = document.getElementById('gutterY');
+            if (gutterX) gutterX.value = config.gutter.x;
+            if (gutterY) gutterY.value = config.gutter.y;
+
+            // Update orientation
+            document.querySelectorAll('.orient-btn, .orient-btn-elite').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll(`.orient-btn[data-orientation="${config.orientation}"], .orient-btn-elite[data-orientation="${config.orientation}"]`).forEach(b => b.classList.add('active'));
+
+            // Update print mode
+            const printModeSelect = document.getElementById('printModeSelect');
+            if (printModeSelect) printModeSelect.value = config.printMode;
+
+            // Update fit mode
+            document.querySelectorAll('.fit-btn').forEach(b => b.classList.remove('active'));
+            const fitBtn = document.querySelector(`.fit-btn[data-fit="${config.fitMode}"]`);
+            if (fitBtn) fitBtn.classList.add('active');
+        }
+
+        togglePinHistory(id) {
+            const item = this.layoutHistory.find(h => h.id === id);
+            if (item) {
+                item.isPinned = !item.isPinned;
+                this.saveLayoutHistory();
+                this.renderLayoutHistory();
+                this.showToast(item.isPinned ? '📌 Đã ghim layout' : '📌 Đã bỏ ghim layout', 'info');
+            }
+        }
+
+        deleteHistoryItem(id) {
+            if (!confirm('Bạn có chắc muốn xóa layout này khỏi lịch sử?')) return;
+
+            this.layoutHistory = this.layoutHistory.filter(h => h.id !== id);
+            this.saveLayoutHistory();
+            this.renderLayoutHistory();
+            this.showToast('🗑️ Đã xóa khỏi lịch sử', 'info');
+        }
+
+        renameHistoryItem(id) {
+            const item = this.layoutHistory.find(h => h.id === id);
+            if (!item) return;
+
+            const newName = prompt('Đổi tên layout:', item.name);
+            if (newName && newName.trim()) {
+                item.name = newName.trim();
+                this.saveLayoutHistory();
+                this.renderLayoutHistory();
+                this.showToast('✏️ Đã đổi tên layout', 'success');
+            }
+        }
+
+        clearAllHistory() {
+            if (!confirm('Bạn có chắc muốn xóa toàn bộ lịch sử?')) return;
+
+            this.layoutHistory = [];
+            this.saveLayoutHistory();
+            this.renderLayoutHistory();
+            this.showToast('🗑️ Đã xóa toàn bộ lịch sử', 'info');
+        }
+
+        setupLayoutHistoryEventListeners() {
+            // Toggle history panel
+            const toggleBtn = document.getElementById('toggleHistoryBtn');
+            const historyContent = document.getElementById('historyContent');
+            if (toggleBtn && historyContent) {
+                toggleBtn.addEventListener('click', () => {
+                    const isCollapsed = historyContent.classList.toggle('collapsed');
+                    toggleBtn.classList.toggle('active', !isCollapsed);
+                });
+            }
+
+            // Clear all history
+            const clearBtn = document.getElementById('clearHistoryBtn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => this.clearAllHistory());
+            }
+        }
+
+        // ============ END LAYOUT HISTORY SECTION ============
 
         applyCuttingPreset(cutting) {
             console.log('✂️ Applying cutting preset:', cutting);
