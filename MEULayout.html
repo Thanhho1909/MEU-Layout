@@ -21131,6 +21131,10 @@
                                     <span class="pill-icon"><svg class="svg-icon"><use href="#icon-target"></use></svg></span>
                                     <span class="pill-text">SK316 REAL</span>
                                 </button>
+                                <button class="preset-pill" data-preset="sk316-55x85" title="SK316 8.5×5.4cm: A4 dọc, card 85×54mm ngang, exact layout 2×5 = 10 cards">
+                                    <span class="pill-icon"><svg class="svg-icon"><use href="#icon-target"></use></svg></span>
+                                    <span class="pill-text">SK316 8.5×5.4</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -21351,6 +21355,14 @@
                                         <div class="fit-buttons">
                                             <button class="fit-btn active" data-fit="fill" title="Lấp đầy, crop nếu cần"><svg class="svg-icon"><use href="#icon-scissors"></use></svg> Fill</button>
                                             <button class="fit-btn" data-fit="contain" title="Không crop, thêm viền"><svg class="svg-icon"><use href="#icon-box"></use></svg> Fit</button>
+                                        </div>
+                                    </div>
+                                    <div class="setting-group">
+                                        <label><svg class="svg-icon"><use href="#icon-layers"></use></svg> Bleed (mm)</label>
+                                        <input type="number" id="bleedValue" min="0" max="5" step="0.1" value="0" placeholder="0.0">
+                                        <div class="gutter-hint">
+                                            <svg class="svg-icon"><use href="#icon-lightbulb"></use></svg>
+                                            <small>Mở rộng ảnh ra ngoài frame card (khuyến nghị: 0.3mm)</small>
                                         </div>
                                     </div>
                                 </div>
@@ -22136,18 +22148,24 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                                     <div class="adv-offset-inputs">
                                         <div class="offset-group">
                                             <span>X:</span>
-                                            <input type="number" id="duplexOffsetX" class="adv-input" value="0" step="0.1" min="-5" max="5">
+                                            <input type="number" id="duplexOffsetX" class="adv-input" value="0" step="0.1" min="-5" max="5" title="X dương (+): dịch PHẢI | X âm (-): dịch TRÁI">
                                             <span>mm</span>
                                         </div>
                                         <div class="offset-group">
                                             <span>Y:</span>
-                                            <input type="number" id="duplexOffsetY" class="adv-input" value="0" step="0.1" min="-5" max="5">
+                                            <input type="number" id="duplexOffsetY" class="adv-input" value="0" step="0.1" min="-5" max="5" title="Y dương (+): dịch XUỐNG | Y âm (-): dịch LÊN">
                                             <span>mm</span>
                                         </div>
                                         <button class="adv-btn" id="calibrationTestBtn" title="Tạo trang test">
                                             <svg class="svg-icon"><use href="#icon-ruler"></use></svg>
                                             Test
                                         </button>
+                                    </div>
+                                    <div class="adv-help-text" style="margin-top: 8px; font-size: 11px; color: #64748b; line-height: 1.4;">
+                                        💡 <strong>Cách dùng:</strong> In test → Đo lệch thực tế → Nhập giá trị <strong>NGƯỢC LẠI</strong> để bù<br>
+                                        📐 <strong>X:</strong> Lệch phải → nhập <strong>âm (-)</strong> | Lệch trái → nhập <strong>dương (+)</strong><br>
+                                        📐 <strong>Y:</strong> Lệch xuống → nhập <strong>âm (-)</strong> | Lệch lên → nhập <strong>dương (+)</strong><br>
+                                        ⚠️ Chỉ áp dụng cho <strong>MẶT SAU</strong>, mặt trước không đổi
                                     </div>
                                 </div>
 
@@ -42786,6 +42804,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                         dpi: 300,
                         orientation: 'portrait',
                         fitMode: 'fill',
+                        bleed: 0, // mm - Mở rộng ảnh ra ngoài frame card (áp dụng cho tất cả)
                         printMode: 'single', // 'single' or 'duplex'
                         duplexFlip: 'long-edge', // 'long-edge' or 'short-edge'
                         duplexPhysicalOffset: { x: 0, y: 0 }, // Physical offset in mm for duplex printing
@@ -43016,7 +43035,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             const inputs = [
                 'paperWidth', 'paperHeight', 'photoWidth', 'photoHeight',
                 'marginTop', 'marginBottom', 'marginLeft', 'marginRight',
-                'gutterX', 'gutterY'
+                'gutterX', 'gutterY', 'bleedValue'
             ];
             
             inputs.forEach(id => {
@@ -46154,6 +46173,12 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                 console.error('❌ gutterX or gutterY not found!');
             }
 
+            const bleedValue = document.getElementById('bleedValue');
+            if (bleedValue) {
+                this.printData.config.bleed = parseFloat(bleedValue.value) || 0;
+                console.log('✅ Updated bleed config:', this.printData.config.bleed);
+            }
+
             console.log('🔄 Calling calculateLayout...');
             this.calculateLayout();
             // NOTE: calculateLayout() already calls updatePreview(), so no need to call updateMasterCanvas() again
@@ -48546,6 +48571,24 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
         }
 
         drawImageOnCanvas(ctx, img, x, y, width, height, fitMode) {
+            // Lấy bleed value từ config
+            const bleed = this.printData?.config?.bleed || 0;
+            const bleedPx = bleed * (this.printData?.config?.dpi || 300) / 25.4; // Convert mm to pixels
+
+            // Lưu frame gốc cho border
+            const frameX = x;
+            const frameY = y;
+            const frameWidth = width;
+            const frameHeight = height;
+
+            // Mở rộng vùng ảnh với bleed
+            if (bleed > 0) {
+                x -= bleedPx;
+                y -= bleedPx;
+                width += bleedPx * 2;
+                height += bleedPx * 2;
+            }
+
             const imgAspect = img.width / img.height;
             const targetAspect = width / height;
 
@@ -48575,7 +48618,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                 }
             }
 
-            // Draw image
+            // Draw image với clip mở rộng
             ctx.save();
             ctx.beginPath();
             ctx.rect(x, y, width, height);
@@ -48583,17 +48626,33 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             ctx.drawImage(img, x + offsetX, y + offsetY, drawWidth, drawHeight);
             ctx.restore();
 
-            // Draw border
+            // Draw border ở vị trí frame gốc
             ctx.strokeStyle = '#e2e8f0';
             ctx.lineWidth = 1;
-            ctx.strokeRect(x, y, width, height);
+            ctx.strokeRect(frameX, frameY, frameWidth, frameHeight);
         }
 
         // Vẽ ảnh với rotation
         drawImageOnCanvasWithRotation(ctx, img, x, y, width, height, rotation, fitMode) {
+            // Lấy bleed value từ config
+            const bleed = this.printData?.config?.bleed || 0;
+            const bleedPx = bleed * (this.printData?.config?.dpi || 300) / 25.4; // Convert mm to pixels
+
+            // Lưu frame gốc cho border
+            const frameWidth = width;
+            const frameHeight = height;
+
+            // Mở rộng vùng ảnh với bleed
+            if (bleed > 0) {
+                x -= bleedPx;
+                y -= bleedPx;
+                width += bleedPx * 2;
+                height += bleedPx * 2;
+            }
+
             ctx.save();
 
-            // Tính toán center point để xoay quanh
+            // Tính toán center point để xoay quanh (dùng width/height đã mở rộng)
             const centerX = x + width / 2;
             const centerY = y + height / 2;
 
@@ -48633,7 +48692,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                 }
             }
 
-            // Clip để ảnh không vượt ra ngoài
+            // Clip để ảnh không vượt ra ngoài (dùng kích thước mở rộng)
             ctx.beginPath();
             ctx.rect(0, 0, width, height);
             ctx.clip();
@@ -48641,14 +48700,16 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             // Vẽ ảnh
             ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
-            // Vẽ border
+            // Vẽ border ở vị trí frame gốc (trong local coordinate)
             ctx.strokeStyle = '#e2e8f0';
             ctx.lineWidth = 1;
-            ctx.strokeRect(0, 0, width, height);
+            const borderOffsetX = (width - frameWidth) / 2;
+            const borderOffsetY = (height - frameHeight) / 2;
+            ctx.strokeRect(borderOffsetX, borderOffsetY, frameWidth, frameHeight);
 
             ctx.restore();
 
-            console.log(`🔄 Vẽ ảnh xoay ${rotation}° tại (${x}, ${y}) kích thước ${width}×${height}`);
+            console.log(`🔄 Vẽ ảnh xoay ${rotation}° tại (${x}, ${y}) kích thước ${width}×${height}, bleed=${bleed}mm`);
         }
 
         showPreviousPage() {
@@ -53574,8 +53635,8 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                         rotation: actualRotation
                     });
 
-                    // Vẽ ảnh với rotation phù hợp - dùng 'fit' để không méo tỷ lệ
-                    const safeMode = 'fit'; // Force fit để giữ tỷ lệ ảnh
+                    // Vẽ ảnh với rotation phù hợp - dùng fitMode từ config (fill/fit)
+                    const safeMode = config.fitMode || 'fill'; // Dùng fitMode từ config
                     if (actualRotation !== 0) {
                         console.log(`🔄 Rendering với rotation ${actualRotation}° cho ảnh ${imageIndex + 1}`);
                         this.drawImageOnCanvasWithRotation(ctx, imageData.img, xPx, yPx, wPx, hPx, actualRotation, safeMode);
@@ -53698,9 +53759,23 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             const rotation = imageData.rotation || 0;
             const flip = imageData.flip || { horizontal: false, vertical: false };
 
+            // Lấy bleed value từ config
+            const bleed = this.printData?.config?.bleed || 0;
+            const bleedPx = bleed * (this.printData?.config?.dpi || 300) / 25.4; // Convert mm to pixels
+
+            // Lưu kích thước gốc cho border (nếu cần sau này)
+            const frameWidth = width;
+            const frameHeight = height;
+
+            // Mở rộng vùng ảnh với bleed
+            if (bleed > 0) {
+                width += bleedPx * 2;
+                height += bleedPx * 2;
+            }
+
             ctx.save();
 
-            // Di chuyển origin đến tâm ảnh
+            // Di chuyển origin đến tâm ảnh (dùng kích thước mở rộng)
             ctx.translate(x + width / 2, y + height / 2);
 
             // Apply rotation
@@ -53896,12 +53971,20 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             const imgAspect = img.width / img.height;
             const targetAspect = width / height;
 
-            // 🔍 Calculate bleed (phóng to mặt sau)
+            // 🔍 Calculate bleed (general bleed + backSideBleed cho duplex)
             let bleedPx = 0;
+
+            // Áp dụng general bleed (config.bleed) nếu có
+            if (config.bleed > 0) {
+                bleedPx = (config.bleed / 25.4) * config.dpi;
+                console.log(`🔍 Applying general bleed: ${config.bleed}mm = ${bleedPx.toFixed(2)}px`);
+            }
+
+            // Cộng thêm backSideBleed nếu enabled (chỉ cho duplex back side)
             if (config.backSideBleedEnabled && config.backSideBleed > 0) {
-                // Convert mm to px: (mm / 25.4) * dpi
-                bleedPx = (config.backSideBleed / 25.4) * config.dpi;
-                console.log(`🔍 Applying bleed: ${config.backSideBleed}mm = ${bleedPx.toFixed(2)}px`);
+                const backBleedPx = (config.backSideBleed / 25.4) * config.dpi;
+                bleedPx += backBleedPx;
+                console.log(`🔍 Adding backSideBleed: ${config.backSideBleed}mm = ${backBleedPx.toFixed(2)}px, total = ${bleedPx.toFixed(2)}px`);
             }
 
             // Calculate dimensions WITH bleed
@@ -54161,16 +54244,16 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     document.querySelectorAll('.orient-btn[data-orientation="portrait"], .orient-btn-elite[data-orientation="portrait"]').forEach(b => b.classList.add('active'));
 
                     const sk316RealPositions = [
-                        { x: 13.5, y: 8.6, width: 90, height: 54, rotation: 0 },
-                        { x: 106.5, y: 8.6, width: 90, height: 54, rotation: 0 },
-                        { x: 13.5, y: 64.5, width: 90, height: 54, rotation: 0 },
-                        { x: 106.5, y: 64.5, width: 90, height: 54, rotation: 0 },
-                        { x: 13.5, y: 121.5, width: 90, height: 54, rotation: 0 },
-                        { x: 106.5, y: 121.5, width: 90, height: 54, rotation: 0 },
-                        { x: 13.5, y: 177.0, width: 90, height: 54, rotation: 0 },
-                        { x: 106.5, y: 177.0, width: 90, height: 54, rotation: 0 },
+                        { x: 13.5, y: 8.1, width: 90, height: 54, rotation: 0 },
+                        { x: 105.5, y: 8.1, width: 90, height: 54, rotation: 0 },
+                        { x: 13.5, y: 64.3, width: 90, height: 54, rotation: 0 },
+                        { x: 105.5, y: 64.3, width: 90, height: 54, rotation: 0 },
+                        { x: 13.5, y: 121.2, width: 90, height: 54, rotation: 0 },
+                        { x: 105.5, y: 121.2, width: 90, height: 54, rotation: 0 },
+                        { x: 13.5, y: 177.4, width: 90, height: 54, rotation: 0 },
+                        { x: 105.5, y: 177.4, width: 90, height: 54, rotation: 0 },
                         { x: 13.5, y: 233.8, width: 90, height: 54, rotation: 0 },
-                        { x: 106.5, y: 233.8, width: 90, height: 54, rotation: 0 }
+                        { x: 105.5, y: 233.8, width: 90, height: 54, rotation: 0 }
                     ];
 
                     const sk316RealLayout = {
@@ -54194,6 +54277,90 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     this.showToast('SK316 REAL: Exact calibrated layout (rNcM) loaded', 'success');
                     this.updatePreviewStatus('SK316 REAL: Tọạ độ tuyệt đối (rNcM)', 'success');
                     return;
+
+                case 'sk316-55x85':
+                    if (paperSizeSelect) paperSizeSelect.value = 'a4';
+                    if (photoSizeSelect) photoSizeSelect.value = 'custom';
+                    if (printModeSelect) printModeSelect.value = 'single';
+
+                    this.printData.config.paperSize = { width: 210.10, height: 297.01 }; // Real measured A4
+                    this.printData.config.photoSize = { width: 8.5, height: 5.4 }; // 85x54mm landscape
+                    this.printData.config.printMode = 'single';
+                    this.printData.config.margins = {
+                        top: 8.6,
+                        bottom: 9.21,
+                        left: 13.5,
+                        right: 13.6
+                    };
+                    this.printData.config.orientation = 'portrait';
+                    this.printData.config.gutter = { x: 3.0, y: 2.3 };
+                    this.printData.config.fitMode = 'fill';
+                    this.printData.config.allowRotate = false;
+                    this.printData.config.allowScale = false;
+                    this.printData.config.offsetRncm = this.printData.config.offsetRncm || { enabled: false, data: {} };
+                    this.printData.config.offsetRncm.limit = 1.0;
+                    this.printData.config.cuttingGuides = {
+                        outerCuttingLines: false,
+                        betweenImages: false,
+                        cornerMarks: false,
+                        gridHelperLines: false,
+                        thickness: 0.5
+                    };
+
+                    // Sync UI inputs
+                    const marginTopElem55x85 = document.getElementById('marginTop');
+                    const marginBottomElem55x85 = document.getElementById('marginBottom');
+                    const marginLeftElem55x85 = document.getElementById('marginLeft');
+                    const marginRightElem55x85 = document.getElementById('marginRight');
+                    if (marginTopElem55x85) marginTopElem55x85.value = 8.6;
+                    if (marginBottomElem55x85) marginBottomElem55x85.value = 9.21;
+                    if (marginLeftElem55x85) marginLeftElem55x85.value = 13.5;
+                    if (marginRightElem55x85) marginRightElem55x85.value = 13.6;
+                    if (marginAll) marginAll.value = '';
+
+                    const gutterXElem55x85 = document.getElementById('gutterX');
+                    const gutterYElem55x85 = document.getElementById('gutterY');
+                    if (gutterXElem55x85) gutterXElem55x85.value = 3.0;
+                    if (gutterYElem55x85) gutterYElem55x85.value = 2.3;
+
+                    document.querySelectorAll('.orient-btn, .orient-btn-elite').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.orient-btn[data-orientation="portrait"], .orient-btn-elite[data-orientation="portrait"]').forEach(b => b.classList.add('active'));
+
+                    const sk31655x85Positions = [
+                        { x: 18.5, y: 8.1, width: 85, height: 54, rotation: 0 },
+                        { x: 105.5, y: 8.1, width: 85, height: 54, rotation: 0 },
+                        { x: 18.5, y: 64.3, width: 85, height: 54, rotation: 0 },
+                        { x: 105.5, y: 64.3, width: 85, height: 54, rotation: 0 },
+                        { x: 18.5, y: 121.2, width: 85, height: 54, rotation: 0 },
+                        { x: 105.5, y: 121.2, width: 85, height: 54, rotation: 0 },
+                        { x: 18.5, y: 177.4, width: 85, height: 54, rotation: 0 },
+                        { x: 105.5, y: 177.4, width: 85, height: 54, rotation: 0 },
+                        { x: 18.5, y: 233.8, width: 85, height: 54, rotation: 0 },
+                        { x: 105.5, y: 233.8, width: 85, height: 54, rotation: 0 }
+                    ];
+
+                    const sk31655x85Layout = {
+                        totalPhotos: 10,
+                        rows: 5,
+                        cols: 2,
+                        photoWidth: 85,
+                        photoHeight: 54,
+                        actualSpacing: { x: 3.0, y: 2.3 },
+                        useAbsolutePositions: true,
+                        exactPositions: sk31655x85Positions
+                    };
+
+                    this.applyExactLayout(sk31655x85Layout, this.printData.config.paperSize.width, this.printData.config.paperSize.height);
+                    this.printData.lockedExactLayout = true;
+                    if (this.previewState) this.previewState.showGuides = false;
+                    this.printData.maxPhotosPerPage = sk31655x85Layout.totalPhotos;
+                    this.printData.rotatePhotos = false;
+                    this.printData.layoutType = 'exact';
+                    this.updateTotalPages();
+                    this.showToast('SK316 8.5×5.4: Exact layout với card 85×54mm ngang', 'success');
+                    this.updatePreviewStatus('SK316 8.5×5.4: Tọạ độ tuyệt đối (85×54mm)', 'success');
+                    return;
+
                 case 'custom':
                     // Don't change anything, let user configure
                     this.showToast('💡 Chọn cài đặt tùy chỉnh - điều chỉnh các tùy chọn bên dưới', 'info');
