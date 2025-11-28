@@ -21288,22 +21288,22 @@
                                     <div class="setting-group">
                                         <label><svg class="svg-icon"><use href="#icon-ruler"></use></svg> Lề (mm)</label>
                                         <div class="margin-inputs-compact">
-                                            <input type="number" id="marginAll" min="0" max="50" value="10" placeholder="Tất cả">
+                                            <input type="number" id="marginAll" min="0" max="50" value="5" placeholder="Tất cả">
                                             <button class="margin-expand" id="marginExpandBtn" title="Tùy chỉnh từng cạnh"><svg class="svg-icon"><use href="#icon-settings"></use></svg></button>
                                         </div>
                                         <div class="margin-detailed" id="marginDetailed" style="display: none;">
                                             <div class="margin-grid">
-                                                <input type="number" id="marginTop" min="0" max="50" value="10" placeholder="Trên">
-                                                <input type="number" id="marginRight" min="0" max="50" value="10" placeholder="Phải">
-                                                <input type="number" id="marginBottom" min="0" max="50" value="10" placeholder="Dưới">
-                                                <input type="number" id="marginLeft" min="0" max="50" value="10" placeholder="Trái">
+                                                <input type="number" id="marginTop" min="0" max="50" value="5" placeholder="Trên">
+                                                <input type="number" id="marginRight" min="0" max="50" value="5" placeholder="Phải">
+                                                <input type="number" id="marginBottom" min="0" max="50" value="5" placeholder="Dưới">
+                                                <input type="number" id="marginLeft" min="0" max="50" value="5" placeholder="Trái">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="setting-group">
                                         <label><svg class="svg-icon"><use href="#icon-ruler"></use></svg> Khoảng cách (mm)</label>
                                         <div class="gutter-inputs-compact">
-                                            <input type="number" id="gutterX" min="0" max="20" value="5" placeholder="Ngang">
+                                            <input type="number" id="gutterX" min="0" max="20" value="3" placeholder="Ngang">
                                             <input type="number" id="gutterY" min="0" max="20" value="5" placeholder="Dọc">
                                         </div>
                                         <div class="gutter-hint">
@@ -42474,7 +42474,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                         paperSize: { width: 210, height: 297 }, // A4 in mm
                         photoSize: { width: 5.5, height: 8.5 }, // in cm
                         margins: { top: 5, bottom: 5, left: 5, right: 5 }, // in mm
-                        gutter: { x: 5, y: 5 }, // in mm
+                        gutter: { x: 3, y: 5 }, // in mm
                         dpi: 300,
                         orientation: 'portrait',
                         fitMode: 'fill',
@@ -43854,9 +43854,10 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
 
                     console.log(`📏 Duplex Offset X changed to: ${value.toFixed(1)}mm`);
 
-                    // Re-render ALL canvases to apply offset
+                    // Re-render duplex canvases to apply offset
                     if (this.printData.config.printMode === 'duplex') {
-                        this.updateMasterCanvas();
+                        this.renderDuplexCanvas('front');
+                        this.renderDuplexCanvas('back');
                         this.showToast(`📏 Offset X: ${value.toFixed(1)}mm`, 'info');
                     }
                 });
@@ -43871,9 +43872,10 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
 
                     console.log(`📏 Duplex Offset Y changed to: ${value.toFixed(1)}mm`);
 
-                    // Re-render ALL canvases to apply offset
+                    // Re-render duplex canvases to apply offset
                     if (this.printData.config.printMode === 'duplex') {
-                        this.updateMasterCanvas();
+                        this.renderDuplexCanvas('front');
+                        this.renderDuplexCanvas('back');
                         this.showToast(`📏 Offset Y: ${value.toFixed(1)}mm`, 'info');
                     }
                 });
@@ -45827,14 +45829,14 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             }
 
             if (marginTop && marginBottom && marginLeft && marginRight) {
-                this.printData.config.margins.top = parseFloat(marginTop.value) || 10;
-                this.printData.config.margins.bottom = parseFloat(marginBottom.value) || 10;
-                this.printData.config.margins.left = parseFloat(marginLeft.value) || 10;
-                this.printData.config.margins.right = parseFloat(marginRight.value) || 10;
+                this.printData.config.margins.top = parseFloat(marginTop.value) || 5;
+                this.printData.config.margins.bottom = parseFloat(marginBottom.value) || 5;
+                this.printData.config.margins.left = parseFloat(marginLeft.value) || 5;
+                this.printData.config.margins.right = parseFloat(marginRight.value) || 5;
             }
 
             if (gutterX && gutterY) {
-                this.printData.config.gutter.x = parseFloat(gutterX.value) || 5;
+                this.printData.config.gutter.x = parseFloat(gutterX.value) || 3;
                 this.printData.config.gutter.y = parseFloat(gutterY.value) || 5;
                 console.log('✅ Updated gutter config:', this.printData.config.gutter);
             } else {
@@ -46060,10 +46062,8 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             // Số lượng = floor((khoảng_trống + gutter) / (kích_thước_ảnh + gutter))
             // Ví dụ: ảnh 6x9cm trên A4 dọc có thể dàn 3x3 = 9 ảnh
 
-            // QUAN TRỌNG: Nếu gutter = 3mm (SK316 blade spacing), FORCE dùng gutter đó, không tối ưu hóa!
-            const isSK316Mode = (gutter.x === 3 && gutter.y === 3);
-
-            // Method 1: Tính toán chuẩn với gutter hiện tại
+            // 🔒 FORCE MODE: LUÔN dùng đúng gutter user đã set, KHÔNG tối ưu hóa
+            // Tính toán chuẩn với gutter user set
             let cols = Math.floor((availableWidth + gutter.x) / (photoW + gutter.x));
             let rows = Math.floor((availableHeight + gutter.y) / (photoH + gutter.y));
 
@@ -46071,88 +46071,24 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             cols = Math.max(1, cols);
             rows = Math.max(1, rows);
 
-            let finalCols, finalRows, bestLayout;
+            // FORCE: Dùng kết quả tính từ gutter user set, KHÔNG thử method khác
+            let finalCols = cols;
+            let finalRows = rows;
+            let bestLayout = { cols: cols, rows: rows, photos: cols * rows, gutterX: gutter.x, gutterY: gutter.y };
 
-            if (isSK316Mode) {
-                // SK316: FORCE dùng gutter 3mm, không thử method khác
-                console.log('🔧 SK316 MODE: Force using 3mm gutter');
-                console.log(`   📊 SK316 calculated: ${cols} cols × ${rows} rows = ${cols * rows} photos`);
-                finalCols = cols;
-                finalRows = rows;
-                bestLayout = { cols: cols, rows: rows, photos: cols * rows, gutterX: gutter.x, gutterY: gutter.y };
-            } else {
-                // Normal mode: Thử các method khác nhau để tối ưu
-
-                // Method 2: Thử với gutter tối thiểu 1mm
-                const minGutter = 1;
-                let cols2 = Math.floor((availableWidth + minGutter) / (photoW + minGutter));
-                let rows2 = Math.floor((availableHeight + minGutter) / (photoH + minGutter));
-                cols2 = Math.max(1, cols2);
-                rows2 = Math.max(1, rows2);
-
-                // Method 3: Thử với gutter siêu chặt 0.5mm
-                const tightGutter = 0.5;
-                let cols3 = Math.floor((availableWidth + tightGutter) / (photoW + tightGutter));
-                let rows3 = Math.floor((availableHeight + tightGutter) / (photoH + tightGutter));
-                cols3 = Math.max(1, cols3);
-                rows3 = Math.max(1, rows3);
-
-                // Method 4: Thử không có gutter (dàn sát nhau) - tối đa hóa số ảnh
-                let cols4 = Math.floor(availableWidth / photoW);
-                let rows4 = Math.floor(availableHeight / photoH);
-                cols4 = Math.max(1, cols4);
-                rows4 = Math.max(1, rows4);
-
-                // So sánh tất cả các phương pháp
-                const layouts = [
-                    { cols: cols, rows: rows, photos: cols * rows, gutterX: gutter.x, gutterY: gutter.y },
-                    { cols: cols2, rows: rows2, photos: cols2 * rows2, gutterX: minGutter, gutterY: minGutter },
-                    { cols: cols3, rows: rows3, photos: cols3 * rows3, gutterX: tightGutter, gutterY: tightGutter },
-                    { cols: cols4, rows: rows4, photos: cols4 * rows4, gutterX: 0, gutterY: 0 }
-                ];
-
-                // Chọn layout có nhiều ảnh nhất
-                bestLayout = layouts.reduce((best, current) =>
-                    current.photos > best.photos ? current : best
-                );
-
-                finalCols = bestLayout.cols;
-                finalRows = bestLayout.rows;
-            }
-
-            // Log chi tiết các phương pháp tính toán
-            console.log('🔍 Layout calculation details:');
+            // Log chi tiết layout
+            console.log('🔍 FORCE Layout calculation:');
             console.log(`   Available: ${availableWidth.toFixed(1)} × ${availableHeight.toFixed(1)} mm`);
             console.log(`   Photo: ${photoW} × ${photoH} mm`);
-            console.log(`   Method 1 (current gutter ${gutter.x}×${gutter.y}mm): ${cols}×${rows} = ${cols*rows} ảnh`);
-            if (isSK316Mode) {
-                console.log(`   🔧 SK316 MODE: Using fixed 3mm gutter`);
-            }
-            console.log(`   ✅ Best: ${finalCols}×${finalRows} = ${finalCols*finalRows} ảnh`);
+            console.log(`   Gutter: ${gutter.x}×${gutter.y}mm (FORCE - user defined)`);
+            console.log(`   ✅ Result: ${finalCols}×${finalRows} = ${finalCols*finalRows} ảnh`);
 
             // Calculate actual spacing for chosen layout
-            let actualGutterX = bestLayout.gutterX;
-            let actualGutterY = bestLayout.gutterY;
+            // 🔒 FORCE: Luôn dùng đúng gutter user đã set, KHÔNG tự động redistribute
+            let actualGutterX = gutter.x;
+            let actualGutterY = gutter.y;
 
-            // SK316: FORCE giữ nguyên 3mm gutter, không redistribute
-            if (isSK316Mode) {
-                actualGutterX = 3;
-                actualGutterY = 3;
-                console.log(`   🔒 SK316: Locked gutter at 3mm × 3mm (blade spacing)`);
-            } else {
-                // Normal mode: If we have extra space, distribute it evenly
-                if (finalCols > 1) {
-                    const totalPhotoWidth = finalCols * photoW;
-                    const availableGutterSpace = availableWidth - totalPhotoWidth;
-                    actualGutterX = Math.max(0.5, availableGutterSpace / (finalCols - 1));
-                }
-
-                if (finalRows > 1) {
-                    const totalPhotoHeight = finalRows * photoH;
-                    const availableGutterSpace = availableHeight - totalPhotoHeight;
-                    actualGutterY = Math.max(0.5, availableGutterSpace / (finalRows - 1));
-                }
-            }
+            console.log(`   🔒 FORCE MODE: Locked gutter at ${actualGutterX}mm × ${actualGutterY}mm (user-defined)`);
 
             const layout = {
                 cols: finalCols,
@@ -53721,6 +53657,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     this.printData.config.photoSize = { width: 5.5, height: 8.5 };
                     this.printData.config.printMode = 'single';
                     this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.gutter = { x: 3, y: 2 }; // 2mm để vừa 2×5 = 10 ảnh với margin tốt
                     break;
                 case 'standard-6x9':
                     if (paperSizeSelect) paperSizeSelect.value = 'a4';
@@ -53731,6 +53668,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     this.printData.config.photoSize = { width: 6, height: 9 };
                     this.printData.config.printMode = 'single';
                     this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.gutter = { x: 3, y: 5 };
                     break;
                 case 'standard-7x10':
                     if (paperSizeSelect) paperSizeSelect.value = 'a4';
@@ -53741,6 +53679,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     this.printData.config.photoSize = { width: 7, height: 10 };
                     this.printData.config.printMode = 'single';
                     this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.gutter = { x: 3, y: 5 };
                     break;
                 case 'standard-9.5x9.5':
                     if (paperSizeSelect) paperSizeSelect.value = 'a4';
@@ -53751,6 +53690,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     this.printData.config.photoSize = { width: 9.5, height: 9.5 }; // Ảnh vuông 9.5×9.5cm
                     this.printData.config.printMode = 'single';
                     this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.gutter = { x: 3, y: 5 };
                     this.printData.config.orientation = 'landscape';
                     // Cập nhật UI orientation buttons
                     document.querySelectorAll('.orient-btn, .orient-btn-elite').forEach(b => b.classList.remove('active'));
@@ -53766,6 +53706,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     this.printData.config.photoSize = { width: 9, height: 14 }; // Ảnh vừa với lề 5mm
                     this.printData.config.printMode = 'single';
                     this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.gutter = { x: 3, y: 5 };
                     this.printData.config.orientation = 'portrait';
                     this.showToast('📐 Giấy 10×15cm - 1 ảnh/trang', 'success');
                     break;
@@ -53778,6 +53719,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     this.printData.config.photoSize = { width: 9.5, height: 13.8 }; // Ảnh vừa với lề 5mm
                     this.printData.config.printMode = 'single';
                     this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.gutter = { x: 3, y: 5 };
                     this.printData.config.orientation = 'portrait';
                     this.showToast('📐 Giấy A6 (10.5×14.8cm) - 1 ảnh/trang', 'success');
                     break;
@@ -53790,6 +53732,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     this.printData.config.photoSize = { width: 6, height: 9 }; // Ảnh 6×9cm phù hợp
                     this.printData.config.printMode = 'single';
                     this.printData.config.margins = { top: 5, bottom: 5, left: 5, right: 5 };
+                    this.printData.config.gutter = { x: 3, y: 5 };
                     this.printData.config.orientation = 'portrait';
                     this.showToast('📐 Giấy A5 (14.8×21cm) - tối ưu ảnh 6×9cm', 'success');
                     break;
@@ -53927,7 +53870,17 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     this.showToast('💡 Chọn cài đặt tùy chỉnh - điều chỉnh các tùy chọn bên dưới', 'info');
                     break;
             }
-            
+
+            // Sync gutter UI inputs with config (for all presets)
+            const gutterXInput = document.getElementById('gutterX');
+            const gutterYInput = document.getElementById('gutterY');
+            if (gutterXInput && this.printData.config.gutter?.x !== undefined) {
+                gutterXInput.value = this.printData.config.gutter.x;
+            }
+            if (gutterYInput && this.printData.config.gutter?.y !== undefined) {
+                gutterYInput.value = this.printData.config.gutter.y;
+            }
+
             this.calculateLayout();
             this.showToast(`✅ Đã áp dụng preset: ${preset}`, 'success');
         }
@@ -53947,7 +53900,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                 printMode: config.printMode || 'single',
                 fitMode: config.fitMode || 'fill',
                 duplexFlip: config.duplexFlip || 'long-edge',
-                gutter: config.gutter ? { ...config.gutter } : { x: 5, y: 5 }
+                gutter: config.gutter ? { ...config.gutter } : { x: 3, y: 5 }
             };
         }
 
@@ -54070,6 +54023,16 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     input.value = this.printData.config.margins[key];
                 }
             });
+
+            // Sync gutter inputs
+            const gutterXInput = document.getElementById('gutterX');
+            const gutterYInput = document.getElementById('gutterY');
+            if (gutterXInput && this.printData.config.gutter?.x !== undefined) {
+                gutterXInput.value = this.printData.config.gutter.x;
+            }
+            if (gutterYInput && this.printData.config.gutter?.y !== undefined) {
+                gutterYInput.value = this.printData.config.gutter.y;
+            }
 
             document.querySelectorAll('.orient-btn, .orient-btn-elite').forEach(b => b.classList.remove('active'));
             const orientSelector = `.orient-btn[data-orientation="${this.printData.config.orientation}"], .orient-btn-elite[data-orientation="${this.printData.config.orientation}"]`;
@@ -54416,7 +54379,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                 paperSize: { ...preset.paperSize },
                 photoSize: { ...preset.photoSize },
                 margins: { ...preset.margins },
-                gutter: preset.gutter ? { ...preset.gutter } : { x: 5, y: 5 }
+                gutter: preset.gutter ? { ...preset.gutter } : { x: 3, y: 5 }
             };
 
             this.customPresets = this.customPresets || [];
@@ -54606,7 +54569,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                 paperSize: { width: 210, height: 297 }, // A4
                 photoSize: { width: 5.5, height: 8.5 },
                 margins: { top: 5, bottom: 5, left: 5, right: 5 },
-                gutter: { x: 5, y: 5 },
+                gutter: { x: 3, y: 5 },
                 dpi: 300,
                 orientation: 'portrait',
                 fitMode: 'fill',
@@ -54635,7 +54598,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             if (paperSizeSelect) paperSizeSelect.value = 'a4';
             if (photoSizeSelect) photoSizeSelect.value = '5.5x8.5';
             if (printModeSelect) printModeSelect.value = 'single';
-            if (marginAll) marginAll.value = 10;
+            if (marginAll) marginAll.value = 5;
             
             // Reset active states
             document.querySelectorAll('.preset-pill').forEach(c => c.classList.remove('active'));
@@ -60990,7 +60953,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                             paperSize: { width: 210, height: 297 }, // A4 mm
                             photoSize: { width: 5.5, height: 8.5 }, // cm
                             margins: { top: 5, bottom: 5, left: 5, right: 5 }, // mm
-                            gutter: { x: 5, y: 5 }, // mm
+                            gutter: { x: 3, y: 5 }, // mm
                             dpi: 300,
                             orientation: 'portrait',
                             fitMode: 'fill',
