@@ -2,6 +2,7 @@
   "version": 2,
   "outputDirectory": ".",
   "routes": [
+    { "src": "^/$", "dest": "/MEULayout.html" },
     { "handle": "filesystem" },
     {
       "src": "/(.*)",
