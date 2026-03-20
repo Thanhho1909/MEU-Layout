@@ -1,0 +1,1 @@
+// Canvas Rendering Functions\n// Note: Canvas rendering logic is currently in image-handler.js (BatchImageConverter class)\n// For future refactoring: Extract standalone canvas utilities to this file

@@ -1,0 +1,1 @@
+// Presets Configuration\n// SK316, Polaroid, and other layout presets\n// Note: Preset data is currently embedded in image-handler.js (BatchImageConverter class)\n// For future refactoring: Extract preset data to this file
