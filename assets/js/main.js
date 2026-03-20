@@ -1,599 +1,4 @@
-
-            if (folderContent && collapseBtn) {
-                const isCollapsed = folderContent.style.display === 'none';
-                folderContent.style.display = isCollapsed ? 'block' : 'none';
-                collapseBtn.textContent = isCollapsed ? '−' : '+';
-                collapseBtn.title = isCollapsed ? 'Thu gọn' : 'Mở rộng';
-            }
-        }
-
-        // Gửi ảnh đã chọn tới section khác
-        async function sendToSection(targetSection) {
-            if (selectedFileSystemImages.length === 0) {
-                if (window.converter && typeof window.converter.showToast === 'function') {
-                    window.converter.showToast('❌ Vui lòng chọn ít nhất một ảnh!', 'warning');
-                } else {
-                    alert('❌ Vui lòng chọn ít nhất một ảnh!');
-                }
-                return;
-            }
-
-            try {
-                // Chuyển đến section trước để khởi tạo methods
-                if (window.converter && typeof window.converter.switchToTab === 'function') {
-                    window.converter.switchToTab(targetSection);
-                }
-
-                // Đợi một chút để section được khởi tạo hoàn toàn
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                const selectedFiles = [];
-                for (const fileName of selectedFileSystemImages) {
-                    const file = await window.converter.fileSystemStorage.getImageFile(fileName);
-                    selectedFiles.push({ name: fileName, file });
-                }
-
-                // Gọi hàm loadImagesFromFileSystem với section đã được khởi tạo
-                await loadImagesFromFileSystem(targetSection, selectedFiles);
-
-                if (window.converter && typeof window.converter.showToast === 'function') {
-                    window.converter.showToast('✅ Đã gửi ' + selectedFiles.length + ' ảnh tới ' + getSectionDisplayName(targetSection) + '!', 'success');
-                }
-
-            } catch (error) {
-                console.error('Lỗi gửi ảnh:', error);
-                if (window.converter && typeof window.converter.showToast === 'function') {
-                    window.converter.showToast('❌ Lỗi gửi ảnh: ' + error.message, 'error');
-                } else {
-                    alert('❌ Lỗi gửi ảnh: ' + error.message);
-                }
-            }
-        }
-
-        // Lấy tên hiển thị của section
-        function getSectionDisplayName(section) {
-            const names = {
-                'convert': 'Convert',
-                'crop': 'Crop',
-                'templates': 'Templates',
-                'gallery': 'Gallery',
-                'print': 'Print'
-            };
-            return names[section] || section;
-        }
-
-        // ===== NEW FOLDER STRUCTURE FUNCTIONS =====
-
-        // Cập nhật folder filter options
-        function updateFolderFilterOptions(images) {
-            const folderSelect = document.getElementById('folderFilterSelect');
-            if (!folderSelect) return;
-
-            // Lấy danh sách unique folders
-            const folders = [...new Set(images.map(img => img.folder))].sort();
-
-            // Clear current options và thêm "all"
-            folderSelect.innerHTML = '<option value="all">📁 Tất cả thư mục</option>';
-
-            folders.forEach(folder => {
-                const count = images.filter(img => img.folder === folder).length;
-                const option = document.createElement('option');
-                option.value = folder;
-                option.textContent = `📁 ${folder} (${count})`;
-                folderSelect.appendChild(option);
-            });
-
-            // Enable dropdown
-            folderSelect.disabled = false;
-        }
-
-        // Cập nhật folder tree view
-        function updateFolderTreeView(images) {
-            const treeContainer = document.getElementById('filesystemTreeContainer');
-            const treeContent = document.getElementById('filesystemTreeContent');
-            const treeStats = document.getElementById('treeStatsText');
-
-            if (!treeContainer || !treeContent || !treeStats) return;
-
-            // Group images by folder
-            const folderGroups = {};
-            images.forEach(img => {
-                if (!folderGroups[img.folder]) {
-                    folderGroups[img.folder] = [];
-                }
-                folderGroups[img.folder].push(img);
-            });
-
-            const uniqueFolders = Object.keys(folderGroups).length;
-            const totalImages = images.length;
-            treeStats.textContent = `${uniqueFolders} thư mục, ${totalImages} ảnh`;
-
-            // Generate tree HTML
-            let treeHTML = '';
-            Object.keys(folderGroups).sort().forEach(folder => {
-                const folderImages = folderGroups[folder];
-                const folderId = 'folder-' + folder.replace(/[^a-zA-Z0-9]/g, '-');
-
-                treeHTML += `
-                    <div class="tree-folder">
-                        <div class="folder-header" onclick="toggleFolderExpansion('${folderId}')">
-                            <div class="folder-info">
-                                <span class="folder-name">📁 ${folder}</span>
-                                <span class="folder-count">${folderImages.length}</span>
-                            </div>
-                            <button class="folder-toggle" id="toggle-${folderId}">▶</button>
-                        </div>
-                        <div class="folder-content" id="${folderId}">
-                            <div class="folder-image-list">
-                                ${folderImages.map(img => `
-                                    <div class="folder-image-item" onclick="selectImageFromTree('${img.name}')" title="${img.name}">
-                                        <img src="${img.url}" alt="${img.name}">
-                                        <div class="folder-image-category">${getCategoryIcon(img.category)}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            treeContent.innerHTML = treeHTML;
-
-            // Enable tree toggle button
-            const treeToggleBtn = document.getElementById('folderTreeToggleBtn');
-            if (treeToggleBtn) {
-                treeToggleBtn.disabled = false;
-            }
-        }
-
-        // Helper function để lấy category icon
-        function getCategoryIcon(category) {
-            const icons = {
-                convert: '🔄',
-                crop: '✂️',
-                template: '📝',
-                gallery: '🖼️',
-                print: '🖨️',
-                work: '💼',
-                archive: '📦',
-                other: '📁'
-            };
-            return icons[category] || '📁';
-        }
-
-        // Toggle folder expansion in tree view
-        function toggleFolderExpansion(folderId) {
-            const folderContent = document.getElementById(folderId);
-            const toggleBtn = document.getElementById('toggle-' + folderId);
-
-            if (!folderContent || !toggleBtn) return;
-
-            if (folderContent.classList.contains('expanded')) {
-                folderContent.classList.remove('expanded');
-                toggleBtn.textContent = '▶';
-                toggleBtn.classList.remove('expanded');
-            } else {
-                folderContent.classList.add('expanded');
-                toggleBtn.textContent = '▼';
-                toggleBtn.classList.add('expanded');
-            }
-        }
-
-        // Select image from tree view
-        function selectImageFromTree(imageName) {
-            const isCurrentlySelected = selectedFileSystemImages.includes(imageName);
-            toggleImageSelection(imageName, !isCurrentlySelected);
-        }
-
-        // Toggle tree view visibility
-        function toggleTreeView() {
-            const treeContainer = document.getElementById('filesystemTreeContainer');
-            const toggleBtn = document.getElementById('folderTreeToggleBtn');
-            const icon = toggleBtn.querySelector('.btn-icon');
-
-            if (!treeContainer || !toggleBtn || !icon) return;
-
-            if (treeContainer.style.display === 'none' || !treeContainer.style.display) {
-                treeContainer.style.display = 'block';
-                icon.textContent = '🙈';
-                toggleBtn.querySelector('.btn-text').textContent = 'Ẩn cây';
-            } else {
-                treeContainer.style.display = 'none';
-                icon.textContent = '🌳';
-                toggleBtn.querySelector('.btn-text').textContent = 'Cây thư mục';
-            }
-        }
-
-        // Filter by folder
-        function filterByFolder(selectedFolder) {
-            if (selectedFolder === 'all' || !selectedFolder) {
-                filteredImages = [...fileSystemImages];
-            } else {
-                filteredImages = fileSystemImages.filter(img => img.folder === selectedFolder);
-            }
-            displayFileSystemImages();
-        }
-
-        // Filter by category
-        function filterByCategory(selectedCategory) {
-            if (selectedCategory === 'all' || !selectedCategory) {
-                filteredImages = [...fileSystemImages];
-            } else {
-                filteredImages = fileSystemImages.filter(img => img.category === selectedCategory);
-            }
-            displayFileSystemImages();
-        }
-
-        // Enable File System controls
-        function enableFileSystemControls() {
-            const controls = [
-                'fsSearchInput',
-                'fsFormatFilter',
-                'fsFolderFilter',
-                'fsCategoryFilter',
-                'fsTreeView',
-                'fsSelectAllBtn',
-                'fsExportBtn',
-                'fsClearSelectionBtn',
-                'fsSizeSlider'
-            ];
-
-            controls.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.disabled = false;
-                }
-            });
-        }
-
-    </script>
-        // Event Handlers cho File System Section
-        window.addEventListener('load', function() {
-            // Initialize File System Section Event Handlers
-
-            // Header buttons
-            const grantPermissionBtn = document.getElementById('filesystemPermissionBtn');
-            const scanImagesBtn = document.getElementById('filesystemScanBtn');
-            const fsSelectDirectoryBtn = document.getElementById('fsSelectDirectoryBtn');
-            const fsScanBtn = document.getElementById('fsScanBtn');
-            const clearAllDataBtn = document.getElementById('clearAllDataBtn');
-
-            // New File System buttons
-            if (fsSelectDirectoryBtn) {
-                fsSelectDirectoryBtn.addEventListener('click', async () => {
-                    try {
-                        if (!window.converter) {
-                            window.converter = {};
-                        }
-                        if (!window.converter.fileSystemStorage) {
-                            try {
-                                if (typeof window.FileSystemStorage === 'function') {
-                                    window.converter.fileSystemStorage = new window.FileSystemStorage();
-                                } else {
-                                    throw new Error('FileSystemStorage class chưa được load');
-                                }
-                            } catch (error) {
-                                throw new Error('Không thể khởi tạo FileSystemStorage: ' + error.message);
-                            }
-                        }
-
-                        await window.converter.fileSystemStorage.init();
-
-                        // Update UI
-                        const dirName = document.getElementById('fsDirectoryName');
-                        const dirPath = document.getElementById('fsDirectoryPath');
-                        const fsStatus = document.getElementById('fsStatus');
-                        const fsToolbar = document.getElementById('fsToolbar');
-                        const fsDirectoryStats = document.getElementById('fsDirectoryStats');
-                        const fsScanBtn = document.getElementById('fsScanBtn');
-
-                        if (dirName) dirName.textContent = 'Đã chọn thư mục';
-                        if (dirPath) dirPath.textContent = 'Đã cấp quyền truy cập thư mục';
-                        if (fsStatus) {
-                            fsStatus.className = 'fs-status connected';
-                            const statusText = document.getElementById('fsStatusText');
-                            if (statusText) statusText.textContent = 'Đã kết nối';
-                        }
-                        if (fsToolbar) fsToolbar.style.display = 'flex';
-                        if (fsDirectoryStats) fsDirectoryStats.style.display = 'flex';
-                        if (fsScanBtn) fsScanBtn.disabled = false;
-
-                        // Auto scan after granting permission
-                        setTimeout(() => {
-                            if (typeof scanFileSystemImages === 'function') {
-                                scanFileSystemImages();
-                            }
-                        }, 500);
-
-                    } catch (error) {
-                        console.error('Lỗi cấp quyền:', error);
-                        if (window.converter && typeof window.converter.showToast === 'function') {
-                            if (error.name === 'AbortError') {
-                                window.converter.showToast('Đã hủy chọn thư mục', 'warning');
-                            } else {
-                                window.converter.showToast('❌ Lỗi cấp quyền: ' + error.message, 'error');
-                            }
-                        }
-                    }
-                });
-            }
-
-            if (fsScanBtn) {
-                fsScanBtn.addEventListener('click', () => {
-                    if (typeof scanFileSystemImages === 'function') {
-                        scanFileSystemImages();
-                    }
-                });
-            }
-
-            // Clear All Data Button - Xóa toàn bộ localStorage
-            if (clearAllDataBtn) {
-                clearAllDataBtn.addEventListener('click', async () => {
-                    // Hiển thị xác nhận trước khi xóa
-                    const confirmMessage = '⚠️ BẠN CHẮC CHẮN MUỐN XÓA TOÀN BỘ DỮ LIỆU?\n\n' +
-                        'Hành động này sẽ xóa:\n' +
-                        '• Tất cả ảnh trong kho (Gallery)\n' +
-                        '• Dữ liệu ảnh đã convert\n' +
-                        '• Tất cả settings và cấu hình\n' +
-                        '• Cache và temporary data\n\n' +
-                        'Dữ liệu sẽ KHÔNG THỂ KHÔI PHỤC!';
-
-                    if (!confirm(confirmMessage)) {
-                        return;
-                    }
-
-                    // Xác nhận lần 2
-                    if (!confirm('Xác nhận lần cuối: XÓA TOÀN BỘ DỮ LIỆU?')) {
-                        return;
-                    }
-
-                    try {
-                        // Đếm số items trước khi xóa
-                        const itemCount = localStorage.length;
-                        const keys = Object.keys(localStorage);
-
-                        console.log('🗑️ Bắt đầu xóa toàn bộ localStorage...');
-                        console.log('📊 Tổng số items:', itemCount);
-                        console.log('🔑 Keys:', keys);
-
-                        // Xóa toàn bộ localStorage
-                        localStorage.clear();
-
-                        console.log('✅ Đã xóa toàn bộ localStorage');
-
-                        // Xóa galleryImages nếu có
-                        if (window.converter && window.converter.galleryImages) {
-                            window.converter.galleryImages = [];
-                            console.log('✅ Đã xóa galleryImages');
-                        }
-
-                        // Reset các data structures khác
-                        if (window.converter) {
-                            window.converter.files = [];
-                            window.converter.cropFiles = [];
-                            console.log('✅ Đã reset files và cropFiles');
-                        }
-
-                        // Hiển thị thông báo thành công
-                        if (window.imageConverter && typeof window.imageConverter.showToast === 'function') {
-                            window.imageConverter.showToast(`✅ Đã xóa ${itemCount} items khỏi LocalStorage!`, 'success');
-                        } else {
-                            alert(`✅ Đã xóa toàn bộ dữ liệu!\n\nĐã xóa ${itemCount} items.`);
-                        }
-
-                        // Reload trang sau 1.5s
-                        setTimeout(() => {
-                            console.log('🔄 Reloading page...');
-                            window.location.reload();
-                        }, 1500);
-
-                    } catch (error) {
-                        console.error('❌ Lỗi khi xóa localStorage:', error);
-                        if (window.imageConverter && typeof window.imageConverter.showToast === 'function') {
-                            window.imageConverter.showToast('❌ Lỗi khi xóa dữ liệu: ' + error.message, 'error');
-                        } else {
-                            alert('❌ Lỗi khi xóa dữ liệu:\n' + error.message);
-                        }
-                    }
-                });
-            }
-
-            if (grantPermissionBtn) {
-                grantPermissionBtn.addEventListener('click', async () => {
-                    try {
-                        if (!window.converter) {
-                            window.converter = {};
-                        }
-                        if (!window.converter.fileSystemStorage) {
-                            try {
-                                if (typeof window.FileSystemStorage === 'function') {
-                                    window.converter.fileSystemStorage = new window.FileSystemStorage();
-                                } else {
-                                    throw new Error('FileSystemStorage class chưa được load');
-                                }
-                            } catch (error) {
-                                throw new Error('Không thể khởi tạo FileSystemStorage: ' + error.message);
-                            }
-                        }
-
-                        await window.converter.fileSystemStorage.init();
-
-                        // Update status và UI
-                        const statusElement = document.getElementById('fsDirectoryName');
-                        if (statusElement) {
-                            statusElement.textContent = '✅ Đã cấp quyền';
-                        }
-                        grantPermissionBtn.textContent = '✅ Đã cấp quyền';
-                        grantPermissionBtn.disabled = true;
-
-                        // Auto scan after granting permission
-                        setTimeout(() => {
-                            if (typeof scanFileSystemImages === 'function') {
-                                scanFileSystemImages();
-                            }
-                        }, 500);
-
-                    } catch (error) {
-                        console.error('Lỗi cấp quyền:', error);
-                        if (window.converter && typeof window.converter.showToast === 'function') {
-                            window.converter.showToast('❌ Lỗi cấp quyền: ' + error.message, 'error');
-                        } else {
-                            alert('❌ Lỗi cấp quyền: ' + error.message);
-                        }
-                    }
-                });
-            }
-
-            if (scanImagesBtn) {
-                scanImagesBtn.addEventListener('click', () => {
-                    if (typeof scanFileSystemImages === 'function') {
-                        scanFileSystemImages();
-                    }
-                });
-            }
-
-            // Search input
-            const searchInput = document.getElementById('fsSearchInput');
-            if (searchInput) {
-                let searchTimeout;
-                searchInput.addEventListener('input', (e) => {
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => {
-                        if (typeof filterFileSystemImages === 'function') {
-                            filterFileSystemImages(e.target.value);
-                        }
-                    }, 300);
-                });
-            }
-
-            // Filter select
-            const filterSelect = document.getElementById('fsFormatFilter');
-            if (filterSelect) {
-                filterSelect.addEventListener('change', (e) => {
-                    const filterType = e.target.value;
-                    if (filterType === 'all') {
-                        filteredImages = [...fileSystemImages];
-                    } else {
-                        filteredImages = fileSystemImages.filter(img => {
-                            const ext = img.name.toLowerCase().split('.').pop();
-                            if (filterType === 'jpg') return ['jpg', 'jpeg'].includes(ext);
-                            return ext === filterType;
-                        });
-                    }
-                    if (typeof displayFileSystemImages === 'function') {
-                        displayFileSystemImages();
-                    }
-                });
-            }
-
-            // Folder filter select
-            const folderFilterSelect = document.getElementById('folderFilterSelect');
-            if (folderFilterSelect) {
-                folderFilterSelect.addEventListener('change', (e) => {
-                    if (typeof filterByFolder === 'function') {
-                        filterByFolder(e.target.value);
-                    }
-                });
-            }
-
-            // Category filter select
-            const categoryFilterSelect = document.getElementById('categoryFilterSelect');
-            if (categoryFilterSelect) {
-                categoryFilterSelect.addEventListener('change', (e) => {
-                    if (typeof filterByCategory === 'function') {
-                        filterByCategory(e.target.value);
-                    }
-                });
-            }
-
-            // Folder tree toggle button
-            const folderTreeToggleBtn = document.getElementById('folderTreeToggleBtn');
-            if (folderTreeToggleBtn) {
-                folderTreeToggleBtn.addEventListener('click', () => {
-                    if (typeof toggleTreeView === 'function') {
-                        toggleTreeView();
-                    }
-                });
-            }
-
-            // View toggle buttons
-            const gridViewBtn = document.getElementById('filesystemGridView');
-            const listViewBtn = document.getElementById('filesystemListView');
-
-            if (gridViewBtn) {
-                gridViewBtn.addEventListener('click', () => {
-                    currentViewMode = 'grid';
-                    setActiveViewMode('grid');
-                    if (typeof displayFileSystemImages === 'function') {
-                        displayFileSystemImages();
-                    }
-                });
-            }
-
-            if (listViewBtn) {
-                listViewBtn.addEventListener('click', () => {
-                    currentViewMode = 'list';
-                    setActiveViewMode('list');
-                    if (typeof displayFileSystemImages === 'function') {
-                        displayFileSystemImages();
-                    }
-                });
-            }
-
-            // Selection control buttons
-            const selectAllBtn = document.getElementById('filesystemSelectAllBtn');
-            const refreshBtn = document.getElementById('filesystemRefreshBtn');
-
-            if (selectAllBtn) {
-                selectAllBtn.addEventListener('click', () => {
-                    if (typeof selectAllFileSystemImages === 'function') {
-                        selectAllFileSystemImages();
-                    }
-                });
-            }
-
-
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', () => {
-                    // Clear current data
-                    fileSystemImages = [];
-                    filteredImages = [];
-                    selectedFileSystemImages = [];
-
-                    // Rescan
-                    if (typeof scanFileSystemImages === 'function') {
-                        scanFileSystemImages();
-                    }
-                });
-            }
-
-            // Check if permission already granted on page load
-            setTimeout(() => {
-                if (window.converter && window.converter.fileSystemStorage && window.converter.fileSystemStorage.directoryHandle) {
-                    const statusElement = document.getElementById('fsDirectoryName');
-                    if (statusElement) {
-                        statusElement.textContent = '✅ Đã cấp quyền';
-                    }
-                    if (grantPermissionBtn) {
-                        grantPermissionBtn.textContent = '✅ Đã cấp quyền';
-                        grantPermissionBtn.disabled = true;
-                    }
-                }
-            }, 1000);
-        });
-
-        // Helper functions for UI updates
-        function setActiveViewMode(mode) {
-            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-            const modeMap = {
-                'grid': 'filesystemGridView',
-                'list': 'filesystemListView'
-            };
-            const activeBtn = document.getElementById(modeMap[mode]);
-            if (activeBtn) activeBtn.classList.add('active');
-        }
-
-        // ===== AUTO PRINT SECTION CLASS =====
+﻿        // ===== AUTO PRINT SECTION CLASS =====
         class AutoPrintSection {
             constructor() {
                 this.selectedFolder = null;
@@ -1693,4 +1098,544 @@
         window.addEventListener('load', () => {
             window.autoPrint = new AutoPrintSection();
             console.log('✅ Auto Print Section loaded');
+        });
+
+        // ===== A4 TEST PRINT SECTION =====
+        class A4TestPrintSection {
+            constructor() {
+                this.images = [];
+                this.canvas = null;
+                this.ctx = null;
+                this.spacing = 8; // mm
+                this.a4Width = 210; // mm
+                this.a4Height = 297; // mm
+                this.dpi = 300;
+                this.pixelsPerMm = this.dpi / 25.4;
+                this.canvasWidth = this.a4Width * this.pixelsPerMm;
+                this.canvasHeight = this.a4Height * this.pixelsPerMm;
+                this.listenersSetup = false; // Flag to prevent duplicate event listeners
+            }
+
+            init() {
+                if (this.listenersSetup) {
+                    console.log('📄 A4 Test Print Section already initialized');
+                    return; // Already initialized, skip
+                }
+                console.log('📄 Initializing A4 Test Print Section...');
+                this.setupEventListeners();
+                this.setupCanvas();
+                this.listenersSetup = true;
+            }
+
+            setupEventListeners() {
+                // Only setup once
+                if (this.listenersSetup) {
+                    return;
+                }
+
+                const uploadZone = document.getElementById('a4UploadZone');
+                const fileInput = document.getElementById('a4FileInput');
+                const spacingInput = document.getElementById('a4Spacing');
+                const regenerateBtn = document.getElementById('a4RegenerateBtn');
+                const clearBtn = document.getElementById('a4ClearBtn');
+                const exportBtn = document.getElementById('a4ExportBtn');
+
+                // Upload zone click and drag-drop handlers
+                if (uploadZone && fileInput) {
+                    uploadZone.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        fileInput.click();
+                    });
+                    
+                    uploadZone.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        uploadZone.classList.add('dragover');
+                    });
+                    
+                    uploadZone.addEventListener('dragleave', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        uploadZone.classList.remove('dragover');
+                    });
+                    
+                    uploadZone.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        uploadZone.classList.remove('dragover');
+                        if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+                            this.handleFiles(e.dataTransfer.files);
+                        }
+                    });
+                }
+
+                // File input change handler
+                if (fileInput) {
+                    fileInput.addEventListener('change', (e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                            this.handleFiles(e.target.files);
+                            // Reset input value to allow selecting same files again
+                            setTimeout(() => {
+                                e.target.value = '';
+                            }, 100);
+                        }
+                    });
+                }
+
+                // Spacing input
+                if (spacingInput) {
+                    spacingInput.addEventListener('change', (e) => {
+                        this.spacing = parseFloat(e.target.value) || 8;
+                        if (this.images.length > 0) {
+                            this.generateLayout();
+                        }
+                    });
+                }
+
+                // Regenerate button
+                if (regenerateBtn) {
+                    regenerateBtn.addEventListener('click', () => {
+                        if (this.images.length > 0) {
+                            this.generateLayout();
+                        }
+                    });
+                }
+
+                // Clear button
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        this.clearAll();
+                    });
+                }
+
+                // Export button
+                if (exportBtn) {
+                    exportBtn.addEventListener('click', () => {
+                        this.exportToPNG();
+                    });
+                }
+            }
+
+            setupCanvas() {
+                this.canvas = document.getElementById('a4PreviewCanvas');
+                if (!this.canvas) return;
+
+                this.canvas.width = this.canvasWidth;
+                this.canvas.height = this.canvasHeight;
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Set canvas display size (for preview)
+                const maxDisplayWidth = 800;
+                const scale = maxDisplayWidth / this.canvasWidth;
+                this.canvas.style.width = (this.canvasWidth * scale) + 'px';
+                this.canvas.style.height = (this.canvasHeight * scale) + 'px';
+            }
+
+            async handleFiles(files) {
+                const imageFiles = Array.from(files).filter(file => 
+                    file.type.startsWith('image/')
+                );
+
+                if (imageFiles.length === 0) {
+                    alert('Vui lòng chọn file ảnh hợp lệ!');
+                    return;
+                }
+
+                console.log(`📷 Loading ${imageFiles.length} images...`);
+
+                for (const file of imageFiles) {
+                    try {
+                        const imageData = await this.loadImage(file);
+                        this.images.push(imageData);
+                    } catch (error) {
+                        console.error('Error loading image:', error);
+                    }
+                }
+
+                if (this.images.length > 0) {
+                    document.getElementById('a4PreviewSection').style.display = 'block';
+                    this.generateLayout();
+                }
+            }
+
+            loadImage(file) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    const reader = new FileReader();
+
+                    reader.onload = (e) => {
+                        img.onload = () => {
+                            // Get original dimensions in mm (assuming 300 DPI)
+                            const originalWidthMm = (img.naturalWidth / this.pixelsPerMm);
+                            const originalHeightMm = (img.naturalHeight / this.pixelsPerMm);
+
+                            resolve({
+                                file: file,
+                                image: img,
+                                originalWidth: img.naturalWidth,
+                                originalHeight: img.naturalHeight,
+                                originalWidthMm: originalWidthMm,
+                                originalHeightMm: originalHeightMm,
+                                aspectRatio: img.naturalWidth / img.naturalHeight,
+                                name: file.name
+                            });
+                        };
+                        img.onerror = reject;
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            generateLayout() {
+                if (!this.ctx || this.images.length === 0) return;
+
+                // Clear canvas
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+                // Calculate layout
+                const layout = this.calculateLayout();
+                
+                // Draw images - CRITICAL: iterate only through images.length
+                // Items are created in same order as images, so items[i] = images[i]
+                let renderedCount = 0;
+                for (let i = 0; i < this.images.length; i++) {
+                    if (i < layout.items.length) {
+                        const item = layout.items[i];
+                        const imageData = this.images[i];
+                        this.drawImage(item, imageData);
+                        renderedCount++;
+                    }
+                }
+                
+                // Verification: must render exactly images.length
+                if (renderedCount !== this.images.length) {
+                    console.error(`⚠️ Layout error: rendered ${renderedCount} images but expected ${this.images.length}`);
+                } else {
+                    console.log(`✅ Rendered exactly ${renderedCount} images (matches images.length)`);
+                }
+            }
+
+            calculateLayout() {
+                // A4 Test Print Layout Engine
+                // Algorithm: Tìm scale LỚN NHẤT có thể để tất cả ảnh fit trong A4
+                // 1. Dùng binary search để tìm scale lớn nhất
+                // 2. Scale phải đảm bảo tất cả ảnh fit trong canvas với flow layout
+                // 3. Ảnh hiển thị TO NHẤT CÓ THỂ (cùng tỉ lệ) miễn sao dàn đủ trong A4
+                // 4. Tận dụng tối đa không gian A4
+                // 5. Never duplicate: always loop for (let i = 0; i < images.length; i++)
+
+                // Giảm margin tối thiểu để tận dụng TỐI ĐA không gian A4
+                const margin = 2 * this.pixelsPerMm; // 2mm margin tối thiểu
+                const gap = this.spacing * this.pixelsPerMm; // Fixed gap between images
+                const availableWidth = this.canvasWidth - (margin * 2);
+                const availableHeight = this.canvasHeight - (margin * 2);
+
+                const numImages = this.images.length;
+                
+                if (numImages === 0) return { items: [], scale: 0 };
+                
+                // Tìm scale lớn nhất có thể bằng binary search
+                const maxScale = this.findMaximumScale(availableWidth, availableHeight, gap, margin);
+                
+                // Apply flow layout with the maximum scale
+                return this.applyFlowLayout(maxScale, availableWidth, availableHeight, gap, margin);
+            }
+
+            findMaximumScale(availableWidth, availableHeight, gap, margin) {
+                // Tìm scale lớn nhất có thể để tất cả ảnh fit trong A4 và tận dụng tối đa không gian
+                
+                // Tính scale tối đa cho từng ảnh riêng lẻ
+                let individualMaxScale = Infinity;
+                for (let i = 0; i < this.images.length; i++) {
+                    const img = this.images[i];
+                    const scaleX = availableWidth / img.originalWidth;
+                    const scaleY = availableHeight / img.originalHeight;
+                    const imgMaxScale = Math.min(scaleX, scaleY);
+                    individualMaxScale = Math.min(individualMaxScale, imgMaxScale);
+                }
+
+                // Binary search với độ chính xác CAO để tìm scale LỚN NHẤT có thể
+                // Mục tiêu: Tận dụng TỐI ĐA không gian A4
+                let minScale = 0;
+                let maxScale = individualMaxScale * 1.5; // Start much higher to find true maximum
+                let bestScale = 0;
+                let bestLayout = null;
+                const iterations = 150; // Tăng iterations để tìm scale chính xác nhất
+                const precision = 0.00001; // Độ chính xác rất cao
+
+                for (let iteration = 0; iteration < iterations; iteration++) {
+                    const testScale = (minScale + maxScale) / 2;
+                    const layout = this.tryFlowLayout(testScale, availableWidth, availableHeight, gap, margin);
+                    
+                    if (layout && layout.fits && layout.items.length === this.images.length) {
+                        // Scale này fit, thử scale lớn hơn để tận dụng tối đa
+                        minScale = testScale;
+                        if (testScale > bestScale) {
+                            bestScale = testScale;
+                            bestLayout = layout;
+                        }
+                        
+                        // Nếu đã đạt độ chính xác mong muốn, dừng lại
+                        if (maxScale - minScale < precision) {
+                            break;
+                        }
+                    } else {
+                        // Scale này không fit, thử scale nhỏ hơn
+                        maxScale = testScale;
+                    }
+                }
+
+                // Sau khi tìm được scale tốt, thử tăng thêm để TẬN DỤNG TỐI ĐA
+                // Fine-tuning: Tăng scale từng bước nhỏ cho đến khi không fit
+                if (bestScale > 0 && bestLayout && bestLayout.fits) {
+                    // Bước 1: Tăng scale với bước lớn hơn (0.5%) để tìm nhanh
+                    let fineTuneScale = bestScale;
+                    for (let fineTune = 0; fineTune < 100; fineTune++) {
+                        const testFineScale = fineTuneScale * 1.005; // Tăng 0.5%
+                        const fineLayout = this.tryFlowLayout(testFineScale, availableWidth, availableHeight, gap, margin);
+                        if (fineLayout && fineLayout.fits && fineLayout.items.length === this.images.length) {
+                            fineTuneScale = testFineScale;
+                            bestLayout = fineLayout;
+                        } else {
+                            break; // Không fit nữa, dừng lại
+                        }
+                    }
+                    
+                    // Bước 2: Tinh chỉnh với bước nhỏ hơn (0.01%) để đạt độ chính xác cao
+                    for (let fineTune = 0; fineTune < 200; fineTune++) {
+                        const testFineScale = fineTuneScale * 1.0001; // Tăng 0.01%
+                        const fineLayout = this.tryFlowLayout(testFineScale, availableWidth, availableHeight, gap, margin);
+                        if (fineLayout && fineLayout.fits && fineLayout.items.length === this.images.length) {
+                            fineTuneScale = testFineScale;
+                            bestLayout = fineLayout;
+                        } else {
+                            break; // Không fit nữa, dừng lại
+                        }
+                    }
+                    
+                    bestScale = fineTuneScale;
+                }
+
+                // Nếu chưa tìm được scale tốt, thử lại với scale nhỏ hơn một chút
+                if (bestScale === 0 || !bestLayout || !bestLayout.fits) {
+                    // Fallback: thử với scale nhỏ hơn
+                    const fallbackScale = individualMaxScale * 0.8;
+                    const fallbackLayout = this.tryFlowLayout(fallbackScale, availableWidth, availableHeight, gap, margin);
+                    if (fallbackLayout && fallbackLayout.fits) {
+                        bestScale = fallbackScale;
+                        bestLayout = fallbackLayout;
+                    }
+                }
+
+                // Tính toán mức độ tận dụng không gian
+                let spaceUsed = 0;
+                let maxY = margin;
+                let minY = availableHeight + margin;
+                if (bestLayout && bestLayout.items.length > 0) {
+                    bestLayout.items.forEach(item => {
+                        spaceUsed += item.width * item.height;
+                        maxY = Math.max(maxY, item.y + item.height);
+                        minY = Math.min(minY, item.y);
+                    });
+                }
+                const totalAvailable = availableWidth * availableHeight;
+                const utilization = (spaceUsed / totalAvailable) * 100;
+                const heightUtilization = ((maxY - margin) / availableHeight) * 100;
+
+                console.log(`📐 Maximum scale search (TẬN DỤNG TỐI ĐA A4):
+  Total images: ${this.images.length}
+  Individual max scale: ${individualMaxScale.toFixed(4)}
+  Found maximum scale: ${bestScale.toFixed(4)}
+  Layout fits: ${bestLayout ? bestLayout.fits : false}
+  Space utilization: ${utilization.toFixed(1)}%
+  Height utilization: ${heightUtilization.toFixed(1)}%
+  Max Y position: ${maxY.toFixed(1)} / ${(availableHeight + margin).toFixed(1)}
+  Available height: ${availableHeight.toFixed(1)}px`);
+
+                return bestScale > 0 ? bestScale : individualMaxScale * 0.5; // Fallback
+            }
+
+            tryFlowLayout(scale, availableWidth, availableHeight, gap, margin) {
+                // Flow layout: place images row by row, left to right
+                // When row is full, move to next row
+                // Returns layout result with fits flag
+                // TẤT CẢ ẢNH DÙNG CÙNG MỘT SCALE để đảm bảo tỉ lệ đồng nhất
+                const items = [];
+                let currentX = margin;
+                let currentY = margin;
+                let rowHeight = 0;
+                const maxHeight = availableHeight + margin; // Maximum allowed height
+
+                // CRITICAL: Iterate through ALL images exactly once
+                // TẤT CẢ ẢNH được scale với cùng một giá trị scale
+                for (let i = 0; i < this.images.length; i++) {
+                    const img = this.images[i];
+                    
+                    // Calculate scaled dimensions (maintain aspect ratio)
+                    // CÙNG SCALE cho tất cả ảnh
+                    const width = img.originalWidth * scale;
+                    const height = img.originalHeight * scale;
+
+                    // Check if this image fits in current row
+                    const wouldExceedWidth = (currentX + width) > (availableWidth + margin);
+                    
+                    if (wouldExceedWidth && currentX > margin) {
+                        // Current row is full, move to next row
+                        currentY += rowHeight + gap;
+                        currentX = margin;
+                        rowHeight = 0;
+                    }
+
+                    // Check if we exceed available height - CHÍNH XÁC HƠN
+                    // Phải đảm bảo ảnh hoàn toàn nằm trong bounds
+                    if (currentY + height > maxHeight) {
+                        // Doesn't fit - vượt quá chiều cao cho phép
+                        return {
+                            items: items,
+                            scale: scale,
+                            fits: false,
+                            maxY: currentY + rowHeight
+                        };
+                    }
+
+                    // Place this image (cùng scale với tất cả ảnh khác)
+                    items.push({
+                        x: currentX,
+                        y: currentY,
+                        width: width,
+                        height: height,
+                        scale: scale // CÙNG SCALE cho tất cả
+                    });
+
+                    // Update position for next image
+                    currentX += width + gap;
+                    rowHeight = Math.max(rowHeight, height);
+                }
+
+                // Verify: must have exactly images.length items
+                if (items.length !== this.images.length) {
+                    return {
+                        items: [],
+                        scale: scale,
+                        fits: false,
+                        maxY: currentY + rowHeight
+                    };
+                }
+
+                // Calculate actual space used
+                const actualMaxY = currentY + rowHeight;
+                const heightUsed = actualMaxY - margin;
+
+                return {
+                    items: items,
+                    scale: scale,
+                    fits: true,
+                    maxY: actualMaxY,
+                    heightUsed: heightUsed,
+                    heightUtilization: (heightUsed / availableHeight) * 100
+                };
+            }
+
+            applyFlowLayout(scale, availableWidth, availableHeight, gap, margin) {
+                // Apply flow layout with given scale
+                const layout = this.tryFlowLayout(scale, availableWidth, availableHeight, gap, margin);
+                
+                if (!layout.fits || layout.items.length !== this.images.length) {
+                    console.warn(`⚠️ Layout doesn't fit with scale ${scale.toFixed(4)}`);
+                    // Try with slightly reduced scale
+                    const reducedScale = scale * 0.95;
+                    if (reducedScale > 0.001) {
+                        return this.applyFlowLayout(reducedScale, availableWidth, availableHeight, gap, margin);
+                    }
+                }
+
+                console.log(`✅ Flow layout complete: ${layout.items.length} images placed with scale ${scale.toFixed(4)}`);
+
+                return layout;
+            }
+
+            drawImage(item, imageData) {
+                const { x, y, width, height } = item;
+
+                // Draw border
+                this.ctx.strokeStyle = '#9ca3af';
+                this.ctx.lineWidth = Math.max(1, 0.5 * this.pixelsPerMm);
+                this.ctx.strokeRect(x, y, width, height);
+
+                // Draw image
+                this.ctx.drawImage(imageData.image, x, y, width, height);
+            }
+
+            exportToPNG() {
+                if (!this.canvas) {
+                    alert('Không có canvas để xuất!');
+                    return;
+                }
+
+                // Create a new canvas at full resolution
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = this.canvasWidth;
+                exportCanvas.height = this.canvasHeight;
+                const exportCtx = exportCanvas.getContext('2d');
+
+                // Redraw everything at full resolution
+                exportCtx.fillStyle = '#ffffff';
+                exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+                // Recalculate layout with current settings
+                const layout = this.calculateLayout();
+                
+                // Draw images - CRITICAL: iterate only through images.length
+                // Items are created in same order as images, so items[i] = images[i]
+                for (let i = 0; i < this.images.length; i++) {
+                    if (i < layout.items.length) {
+                        const item = layout.items[i];
+                        const imageData = this.images[i];
+                        const { x, y, width, height } = item;
+
+                        // Draw border
+                        exportCtx.strokeStyle = '#9ca3af';
+                        exportCtx.lineWidth = Math.max(1, 0.5 * this.pixelsPerMm);
+                        exportCtx.strokeRect(x, y, width, height);
+
+                        // Draw image
+                        exportCtx.drawImage(imageData.image, x, y, width, height);
+                    }
+                }
+
+                // Convert to blob and download
+                exportCanvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `A4-Test-Print-${new Date().getTime()}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    console.log('✅ Exported A4 Test Print PNG');
+                }, 'image/png', 1.0);
+            }
+
+            clearAll() {
+                this.images = [];
+                if (this.ctx) {
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+                }
+                document.getElementById('a4PreviewSection').style.display = 'none';
+                document.getElementById('a4FileInput').value = '';
+            }
+        }
+
+        // Initialize A4 Test Print Section when page loads
+        window.addEventListener('load', () => {
+            window.a4TestPrint = new A4TestPrintSection();
+            window.a4TestPrint.init();
+            console.log('✅ A4 Test Print Section loaded');
         });

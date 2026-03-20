@@ -1,4 +1,3 @@
-    <script>
         // 🚀 TỰ ĐỘNG CHO PHÉP MULTIPLE DOWNLOADS - Bypass browser restrictions
         (() => {
             // Override browser download policy

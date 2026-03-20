@@ -26956,3 +26956,8 @@
                 converter.files.forEach(file => {
                     if (file.previewUrl) {
                         URL.revokeObjectURL(file.previewUrl);
+                    }
+                });
+            }
+        });
+

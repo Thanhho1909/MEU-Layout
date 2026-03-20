@@ -1,4 +1,4 @@
-        class SK316CalibrationSystem {
+﻿        class SK316CalibrationSystem {
             constructor() {
                 this.profiles = [];
                 this.currentProfile = null;
@@ -2619,3 +2619,595 @@
             const folderId = 'folder-' + folderPath.replace(/[^a-zA-Z0-9]/g, '_');
             const folderContent = document.getElementById(folderId);
             const collapseBtn = document.querySelector(`[onclick="toggleFolderCollapse('${folderPath}')"]`);
+
+            if (folderContent && collapseBtn) {
+                const isCollapsed = folderContent.style.display === 'none';
+                folderContent.style.display = isCollapsed ? 'block' : 'none';
+                collapseBtn.textContent = isCollapsed ? '−' : '+';
+                collapseBtn.title = isCollapsed ? 'Thu gọn' : 'Mở rộng';
+            }
+        }
+
+        // Gửi ảnh đã chọn tới section khác
+        async function sendToSection(targetSection) {
+            if (selectedFileSystemImages.length === 0) {
+                if (window.converter && typeof window.converter.showToast === 'function') {
+                    window.converter.showToast('❌ Vui lòng chọn ít nhất một ảnh!', 'warning');
+                } else {
+                    alert('❌ Vui lòng chọn ít nhất một ảnh!');
+                }
+                return;
+            }
+
+            try {
+                // Chuyển đến section trước để khởi tạo methods
+                if (window.converter && typeof window.converter.switchToTab === 'function') {
+                    window.converter.switchToTab(targetSection);
+                }
+
+                // Đợi một chút để section được khởi tạo hoàn toàn
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const selectedFiles = [];
+                for (const fileName of selectedFileSystemImages) {
+                    const file = await window.converter.fileSystemStorage.getImageFile(fileName);
+                    selectedFiles.push({ name: fileName, file });
+                }
+
+                // Gọi hàm loadImagesFromFileSystem với section đã được khởi tạo
+                await loadImagesFromFileSystem(targetSection, selectedFiles);
+
+                if (window.converter && typeof window.converter.showToast === 'function') {
+                    window.converter.showToast('✅ Đã gửi ' + selectedFiles.length + ' ảnh tới ' + getSectionDisplayName(targetSection) + '!', 'success');
+                }
+
+            } catch (error) {
+                console.error('Lỗi gửi ảnh:', error);
+                if (window.converter && typeof window.converter.showToast === 'function') {
+                    window.converter.showToast('❌ Lỗi gửi ảnh: ' + error.message, 'error');
+                } else {
+                    alert('❌ Lỗi gửi ảnh: ' + error.message);
+                }
+            }
+        }
+
+        // Lấy tên hiển thị của section
+        function getSectionDisplayName(section) {
+            const names = {
+                'convert': 'Convert',
+                'crop': 'Crop',
+                'templates': 'Templates',
+                'gallery': 'Gallery',
+                'print': 'Print'
+            };
+            return names[section] || section;
+        }
+
+        // ===== NEW FOLDER STRUCTURE FUNCTIONS =====
+
+        // Cập nhật folder filter options
+        function updateFolderFilterOptions(images) {
+            const folderSelect = document.getElementById('folderFilterSelect');
+            if (!folderSelect) return;
+
+            // Lấy danh sách unique folders
+            const folders = [...new Set(images.map(img => img.folder))].sort();
+
+            // Clear current options và thêm "all"
+            folderSelect.innerHTML = '<option value="all">📁 Tất cả thư mục</option>';
+
+            folders.forEach(folder => {
+                const count = images.filter(img => img.folder === folder).length;
+                const option = document.createElement('option');
+                option.value = folder;
+                option.textContent = `📁 ${folder} (${count})`;
+                folderSelect.appendChild(option);
+            });
+
+            // Enable dropdown
+            folderSelect.disabled = false;
+        }
+
+        // Cập nhật folder tree view
+        function updateFolderTreeView(images) {
+            const treeContainer = document.getElementById('filesystemTreeContainer');
+            const treeContent = document.getElementById('filesystemTreeContent');
+            const treeStats = document.getElementById('treeStatsText');
+
+            if (!treeContainer || !treeContent || !treeStats) return;
+
+            // Group images by folder
+            const folderGroups = {};
+            images.forEach(img => {
+                if (!folderGroups[img.folder]) {
+                    folderGroups[img.folder] = [];
+                }
+                folderGroups[img.folder].push(img);
+            });
+
+            const uniqueFolders = Object.keys(folderGroups).length;
+            const totalImages = images.length;
+            treeStats.textContent = `${uniqueFolders} thư mục, ${totalImages} ảnh`;
+
+            // Generate tree HTML
+            let treeHTML = '';
+            Object.keys(folderGroups).sort().forEach(folder => {
+                const folderImages = folderGroups[folder];
+                const folderId = 'folder-' + folder.replace(/[^a-zA-Z0-9]/g, '-');
+
+                treeHTML += `
+                    <div class="tree-folder">
+                        <div class="folder-header" onclick="toggleFolderExpansion('${folderId}')">
+                            <div class="folder-info">
+                                <span class="folder-name">📁 ${folder}</span>
+                                <span class="folder-count">${folderImages.length}</span>
+                            </div>
+                            <button class="folder-toggle" id="toggle-${folderId}">▶</button>
+                        </div>
+                        <div class="folder-content" id="${folderId}">
+                            <div class="folder-image-list">
+                                ${folderImages.map(img => `
+                                    <div class="folder-image-item" onclick="selectImageFromTree('${img.name}')" title="${img.name}">
+                                        <img src="${img.url}" alt="${img.name}">
+                                        <div class="folder-image-category">${getCategoryIcon(img.category)}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            treeContent.innerHTML = treeHTML;
+
+            // Enable tree toggle button
+            const treeToggleBtn = document.getElementById('folderTreeToggleBtn');
+            if (treeToggleBtn) {
+                treeToggleBtn.disabled = false;
+            }
+        }
+
+        // Helper function để lấy category icon
+        function getCategoryIcon(category) {
+            const icons = {
+                convert: '🔄',
+                crop: '✂️',
+                template: '📝',
+                gallery: '🖼️',
+                print: '🖨️',
+                work: '💼',
+                archive: '📦',
+                other: '📁'
+            };
+            return icons[category] || '📁';
+        }
+
+        // Toggle folder expansion in tree view
+        function toggleFolderExpansion(folderId) {
+            const folderContent = document.getElementById(folderId);
+            const toggleBtn = document.getElementById('toggle-' + folderId);
+
+            if (!folderContent || !toggleBtn) return;
+
+            if (folderContent.classList.contains('expanded')) {
+                folderContent.classList.remove('expanded');
+                toggleBtn.textContent = '▶';
+                toggleBtn.classList.remove('expanded');
+            } else {
+                folderContent.classList.add('expanded');
+                toggleBtn.textContent = '▼';
+                toggleBtn.classList.add('expanded');
+            }
+        }
+
+        // Select image from tree view
+        function selectImageFromTree(imageName) {
+            const isCurrentlySelected = selectedFileSystemImages.includes(imageName);
+            toggleImageSelection(imageName, !isCurrentlySelected);
+        }
+
+        // Toggle tree view visibility
+        function toggleTreeView() {
+            const treeContainer = document.getElementById('filesystemTreeContainer');
+            const toggleBtn = document.getElementById('folderTreeToggleBtn');
+            const icon = toggleBtn.querySelector('.btn-icon');
+
+            if (!treeContainer || !toggleBtn || !icon) return;
+
+            if (treeContainer.style.display === 'none' || !treeContainer.style.display) {
+                treeContainer.style.display = 'block';
+                icon.textContent = '🙈';
+                toggleBtn.querySelector('.btn-text').textContent = 'Ẩn cây';
+            } else {
+                treeContainer.style.display = 'none';
+                icon.textContent = '🌳';
+                toggleBtn.querySelector('.btn-text').textContent = 'Cây thư mục';
+            }
+        }
+
+        // Filter by folder
+        function filterByFolder(selectedFolder) {
+            if (selectedFolder === 'all' || !selectedFolder) {
+                filteredImages = [...fileSystemImages];
+            } else {
+                filteredImages = fileSystemImages.filter(img => img.folder === selectedFolder);
+            }
+            displayFileSystemImages();
+        }
+
+        // Filter by category
+        function filterByCategory(selectedCategory) {
+            if (selectedCategory === 'all' || !selectedCategory) {
+                filteredImages = [...fileSystemImages];
+            } else {
+                filteredImages = fileSystemImages.filter(img => img.category === selectedCategory);
+            }
+            displayFileSystemImages();
+        }
+
+        // Enable File System controls
+        function enableFileSystemControls() {
+            const controls = [
+                'fsSearchInput',
+                'fsFormatFilter',
+                'fsFolderFilter',
+                'fsCategoryFilter',
+                'fsTreeView',
+                'fsSelectAllBtn',
+                'fsExportBtn',
+                'fsClearSelectionBtn',
+                'fsSizeSlider'
+            ];
+
+            controls.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.disabled = false;
+                }
+            });
+        }
+        // Event Handlers cho File System Section
+        window.addEventListener('load', function() {
+            // Initialize File System Section Event Handlers
+
+            // Header buttons
+            const grantPermissionBtn = document.getElementById('filesystemPermissionBtn');
+            const scanImagesBtn = document.getElementById('filesystemScanBtn');
+            const fsSelectDirectoryBtn = document.getElementById('fsSelectDirectoryBtn');
+            const fsScanBtn = document.getElementById('fsScanBtn');
+            const clearAllDataBtn = document.getElementById('clearAllDataBtn');
+
+            // New File System buttons
+            if (fsSelectDirectoryBtn) {
+                fsSelectDirectoryBtn.addEventListener('click', async () => {
+                    try {
+                        if (!window.converter) {
+                            window.converter = {};
+                        }
+                        if (!window.converter.fileSystemStorage) {
+                            try {
+                                if (typeof window.FileSystemStorage === 'function') {
+                                    window.converter.fileSystemStorage = new window.FileSystemStorage();
+                                } else {
+                                    throw new Error('FileSystemStorage class chưa được load');
+                                }
+                            } catch (error) {
+                                throw new Error('Không thể khởi tạo FileSystemStorage: ' + error.message);
+                            }
+                        }
+
+                        await window.converter.fileSystemStorage.init();
+
+                        // Update UI
+                        const dirName = document.getElementById('fsDirectoryName');
+                        const dirPath = document.getElementById('fsDirectoryPath');
+                        const fsStatus = document.getElementById('fsStatus');
+                        const fsToolbar = document.getElementById('fsToolbar');
+                        const fsDirectoryStats = document.getElementById('fsDirectoryStats');
+                        const fsScanBtn = document.getElementById('fsScanBtn');
+
+                        if (dirName) dirName.textContent = 'Đã chọn thư mục';
+                        if (dirPath) dirPath.textContent = 'Đã cấp quyền truy cập thư mục';
+                        if (fsStatus) {
+                            fsStatus.className = 'fs-status connected';
+                            const statusText = document.getElementById('fsStatusText');
+                            if (statusText) statusText.textContent = 'Đã kết nối';
+                        }
+                        if (fsToolbar) fsToolbar.style.display = 'flex';
+                        if (fsDirectoryStats) fsDirectoryStats.style.display = 'flex';
+                        if (fsScanBtn) fsScanBtn.disabled = false;
+
+                        // Auto scan after granting permission
+                        setTimeout(() => {
+                            if (typeof scanFileSystemImages === 'function') {
+                                scanFileSystemImages();
+                            }
+                        }, 500);
+
+                    } catch (error) {
+                        console.error('Lỗi cấp quyền:', error);
+                        if (window.converter && typeof window.converter.showToast === 'function') {
+                            if (error.name === 'AbortError') {
+                                window.converter.showToast('Đã hủy chọn thư mục', 'warning');
+                            } else {
+                                window.converter.showToast('❌ Lỗi cấp quyền: ' + error.message, 'error');
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (fsScanBtn) {
+                fsScanBtn.addEventListener('click', () => {
+                    if (typeof scanFileSystemImages === 'function') {
+                        scanFileSystemImages();
+                    }
+                });
+            }
+
+            // Clear All Data Button - Xóa toàn bộ localStorage
+            if (clearAllDataBtn) {
+                clearAllDataBtn.addEventListener('click', async () => {
+                    // Hiển thị xác nhận trước khi xóa
+                    const confirmMessage = '⚠️ BẠN CHẮC CHẮN MUỐN XÓA TOÀN BỘ DỮ LIỆU?\n\n' +
+                        'Hành động này sẽ xóa:\n' +
+                        '• Tất cả ảnh trong kho (Gallery)\n' +
+                        '• Dữ liệu ảnh đã convert\n' +
+                        '• Tất cả settings và cấu hình\n' +
+                        '• Cache và temporary data\n\n' +
+                        'Dữ liệu sẽ KHÔNG THỂ KHÔI PHỤC!';
+
+                    if (!confirm(confirmMessage)) {
+                        return;
+                    }
+
+                    // Xác nhận lần 2
+                    if (!confirm('Xác nhận lần cuối: XÓA TOÀN BỘ DỮ LIỆU?')) {
+                        return;
+                    }
+
+                    try {
+                        // Đếm số items trước khi xóa
+                        const itemCount = localStorage.length;
+                        const keys = Object.keys(localStorage);
+
+                        console.log('🗑️ Bắt đầu xóa toàn bộ localStorage...');
+                        console.log('📊 Tổng số items:', itemCount);
+                        console.log('🔑 Keys:', keys);
+
+                        // Xóa toàn bộ localStorage
+                        localStorage.clear();
+
+                        console.log('✅ Đã xóa toàn bộ localStorage');
+
+                        // Xóa galleryImages nếu có
+                        if (window.converter && window.converter.galleryImages) {
+                            window.converter.galleryImages = [];
+                            console.log('✅ Đã xóa galleryImages');
+                        }
+
+                        // Reset các data structures khác
+                        if (window.converter) {
+                            window.converter.files = [];
+                            window.converter.cropFiles = [];
+                            console.log('✅ Đã reset files và cropFiles');
+                        }
+
+                        // Hiển thị thông báo thành công
+                        if (window.imageConverter && typeof window.imageConverter.showToast === 'function') {
+                            window.imageConverter.showToast(`✅ Đã xóa ${itemCount} items khỏi LocalStorage!`, 'success');
+                        } else {
+                            alert(`✅ Đã xóa toàn bộ dữ liệu!\n\nĐã xóa ${itemCount} items.`);
+                        }
+
+                        // Reload trang sau 1.5s
+                        setTimeout(() => {
+                            console.log('🔄 Reloading page...');
+                            window.location.reload();
+                        }, 1500);
+
+                    } catch (error) {
+                        console.error('❌ Lỗi khi xóa localStorage:', error);
+                        if (window.imageConverter && typeof window.imageConverter.showToast === 'function') {
+                            window.imageConverter.showToast('❌ Lỗi khi xóa dữ liệu: ' + error.message, 'error');
+                        } else {
+                            alert('❌ Lỗi khi xóa dữ liệu:\n' + error.message);
+                        }
+                    }
+                });
+            }
+
+            if (grantPermissionBtn) {
+                grantPermissionBtn.addEventListener('click', async () => {
+                    try {
+                        if (!window.converter) {
+                            window.converter = {};
+                        }
+                        if (!window.converter.fileSystemStorage) {
+                            try {
+                                if (typeof window.FileSystemStorage === 'function') {
+                                    window.converter.fileSystemStorage = new window.FileSystemStorage();
+                                } else {
+                                    throw new Error('FileSystemStorage class chưa được load');
+                                }
+                            } catch (error) {
+                                throw new Error('Không thể khởi tạo FileSystemStorage: ' + error.message);
+                            }
+                        }
+
+                        await window.converter.fileSystemStorage.init();
+
+                        // Update status và UI
+                        const statusElement = document.getElementById('fsDirectoryName');
+                        if (statusElement) {
+                            statusElement.textContent = '✅ Đã cấp quyền';
+                        }
+                        grantPermissionBtn.textContent = '✅ Đã cấp quyền';
+                        grantPermissionBtn.disabled = true;
+
+                        // Auto scan after granting permission
+                        setTimeout(() => {
+                            if (typeof scanFileSystemImages === 'function') {
+                                scanFileSystemImages();
+                            }
+                        }, 500);
+
+                    } catch (error) {
+                        console.error('Lỗi cấp quyền:', error);
+                        if (window.converter && typeof window.converter.showToast === 'function') {
+                            window.converter.showToast('❌ Lỗi cấp quyền: ' + error.message, 'error');
+                        } else {
+                            alert('❌ Lỗi cấp quyền: ' + error.message);
+                        }
+                    }
+                });
+            }
+
+            if (scanImagesBtn) {
+                scanImagesBtn.addEventListener('click', () => {
+                    if (typeof scanFileSystemImages === 'function') {
+                        scanFileSystemImages();
+                    }
+                });
+            }
+
+            // Search input
+            const searchInput = document.getElementById('fsSearchInput');
+            if (searchInput) {
+                let searchTimeout;
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        if (typeof filterFileSystemImages === 'function') {
+                            filterFileSystemImages(e.target.value);
+                        }
+                    }, 300);
+                });
+            }
+
+            // Filter select
+            const filterSelect = document.getElementById('fsFormatFilter');
+            if (filterSelect) {
+                filterSelect.addEventListener('change', (e) => {
+                    const filterType = e.target.value;
+                    if (filterType === 'all') {
+                        filteredImages = [...fileSystemImages];
+                    } else {
+                        filteredImages = fileSystemImages.filter(img => {
+                            const ext = img.name.toLowerCase().split('.').pop();
+                            if (filterType === 'jpg') return ['jpg', 'jpeg'].includes(ext);
+                            return ext === filterType;
+                        });
+                    }
+                    if (typeof displayFileSystemImages === 'function') {
+                        displayFileSystemImages();
+                    }
+                });
+            }
+
+            // Folder filter select
+            const folderFilterSelect = document.getElementById('folderFilterSelect');
+            if (folderFilterSelect) {
+                folderFilterSelect.addEventListener('change', (e) => {
+                    if (typeof filterByFolder === 'function') {
+                        filterByFolder(e.target.value);
+                    }
+                });
+            }
+
+            // Category filter select
+            const categoryFilterSelect = document.getElementById('categoryFilterSelect');
+            if (categoryFilterSelect) {
+                categoryFilterSelect.addEventListener('change', (e) => {
+                    if (typeof filterByCategory === 'function') {
+                        filterByCategory(e.target.value);
+                    }
+                });
+            }
+
+            // Folder tree toggle button
+            const folderTreeToggleBtn = document.getElementById('folderTreeToggleBtn');
+            if (folderTreeToggleBtn) {
+                folderTreeToggleBtn.addEventListener('click', () => {
+                    if (typeof toggleTreeView === 'function') {
+                        toggleTreeView();
+                    }
+                });
+            }
+
+            // View toggle buttons
+            const gridViewBtn = document.getElementById('filesystemGridView');
+            const listViewBtn = document.getElementById('filesystemListView');
+
+            if (gridViewBtn) {
+                gridViewBtn.addEventListener('click', () => {
+                    currentViewMode = 'grid';
+                    setActiveViewMode('grid');
+                    if (typeof displayFileSystemImages === 'function') {
+                        displayFileSystemImages();
+                    }
+                });
+            }
+
+            if (listViewBtn) {
+                listViewBtn.addEventListener('click', () => {
+                    currentViewMode = 'list';
+                    setActiveViewMode('list');
+                    if (typeof displayFileSystemImages === 'function') {
+                        displayFileSystemImages();
+                    }
+                });
+            }
+
+            // Selection control buttons
+            const selectAllBtn = document.getElementById('filesystemSelectAllBtn');
+            const refreshBtn = document.getElementById('filesystemRefreshBtn');
+
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', () => {
+                    if (typeof selectAllFileSystemImages === 'function') {
+                        selectAllFileSystemImages();
+                    }
+                });
+            }
+
+
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    // Clear current data
+                    fileSystemImages = [];
+                    filteredImages = [];
+                    selectedFileSystemImages = [];
+
+                    // Rescan
+                    if (typeof scanFileSystemImages === 'function') {
+                        scanFileSystemImages();
+                    }
+                });
+            }
+
+            // Check if permission already granted on page load
+            setTimeout(() => {
+                if (window.converter && window.converter.fileSystemStorage && window.converter.fileSystemStorage.directoryHandle) {
+                    const statusElement = document.getElementById('fsDirectoryName');
+                    if (statusElement) {
+                        statusElement.textContent = '✅ Đã cấp quyền';
+                    }
+                    if (grantPermissionBtn) {
+                        grantPermissionBtn.textContent = '✅ Đã cấp quyền';
+                        grantPermissionBtn.disabled = true;
+                    }
+                }
+            }, 1000);
+        });
+
+        // Helper functions for UI updates
+        function setActiveViewMode(mode) {
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            const modeMap = {
+                'grid': 'filesystemGridView',
+                'list': 'filesystemListView'
+            };
+            const activeBtn = document.getElementById(modeMap[mode]);
+            if (activeBtn) activeBtn.classList.add('active');
+        }

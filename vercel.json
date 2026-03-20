@@ -1,6 +1,9 @@
 {
-  "outputDirectory": ".",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/MEULayout.html" }
+  "routes": [
+    { "handle": "filesystem" },
+    {
+      "src": "/(.*)",
+      "dest": "/MEULayout.html"
+    }
   ]
 }
