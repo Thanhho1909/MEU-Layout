@@ -22644,15 +22644,6 @@
                         ctx.translate(-imageCenterX, -imageCenterY);
                     }
                     
-                    // Portrait: xoay nội dung ảnh 180° thêm
-                    if (config.orientation === 'portrait') {
-                        const imageCenterX = mirroredX + wPx / 2;
-                        const imageCenterY = mirroredY + hPx / 2;
-                        ctx.translate(imageCenterX, imageCenterY);
-                        ctx.rotate(Math.PI); // 180°
-                        ctx.translate(-imageCenterX, -imageCenterY);
-                    }
-                    
                     this.drawImageOnCanvas(ctx, imageData.img, mirroredX, mirroredY, wPx, hPx, safeMode);
                     ctx.restore();
 
@@ -22801,23 +22792,10 @@
                     ctx.fillStyle = 'white';
                     ctx.fillRect(mirroredX, mirroredY, photoWidthPx, photoHeightPx);
 
-                    // ✅ FIX: Portrait cần xoay NỘI DUNG ảnh 180°
-                    // Landscape thì KHÔNG xoay (chỉ mirror tọa độ)
                     ctx.save();
                     ctx.beginPath();
                     ctx.rect(mirroredX, mirroredY, photoWidthPx, photoHeightPx);
                     ctx.clip();
-
-                    // 🔄 XOAY NỘI DUNG ẢNH nếu Portrait
-                    if (config.orientation === 'portrait') {
-                        // Xoay 180° qua tâm khung ảnh
-                        const imageCenterX = mirroredX + photoWidthPx / 2;
-                        const imageCenterY = mirroredY + photoHeightPx / 2;
-                        ctx.translate(imageCenterX, imageCenterY);
-                        ctx.rotate(Math.PI); // 180°
-                        ctx.translate(-imageCenterX, -imageCenterY);
-                        console.log(`🔄 Rotating image content 180° for Portrait at (${mirroredX.toFixed(0)}, ${mirroredY.toFixed(0)})`);
-                    }
 
                     // VẼ ẢNH
                     ctx.drawImage(img, mirroredX + offsetX, mirroredY + offsetY, drawWidth, drawHeight);
@@ -23770,55 +23748,16 @@
                 const originalX = startXPx + col * (photoWidthPx + gutterXPx);
                 const originalY = startYPx + row * (photoHeightPx + gutterYPx);
 
-                // ✅ FIX: Xử lý khác nhau cho Portrait vs Landscape
-                let mirroredX, mirroredY;
+                // Duplex thống nhất: luôn lật cạnh dài (long-edge) theo trục dọc.
+                // backX = paperWidth - frontX - photoWidth, backY = frontY
+                const originalXmm = originalX * 25.4 / dpi;
+                const originalYmm = originalY * 25.4 / dpi;
+                const mirroredXmm = paperWidthMm - originalXmm - layout.photoWidth;
+                const mirroredYmm = originalYmm;
+                const mirroredX = mirroredXmm * dpi / 25.4;
+                const mirroredY = mirroredYmm * dpi / 25.4;
 
-                if (config.orientation === 'portrait') {
-                    // 📐 PORTRAIT (dọc): XOAY 180° (mirror cả X và Y)
-                    // Khi lật giấy dọc, cần xoay 180° chứ không phải mirror đơn giản
-                    const availableAreaCenterX = marginLeftPx + (canvas.width - marginLeftPx - marginRightPx) / 2;
-                    const availableAreaCenterY = marginTopPx + (canvas.height - marginTopPx - marginBottomPx) / 2;
-
-                    // Xoay 180° = mirror cả X và Y qua center
-                    const originalCenterX = originalX + photoWidthPx / 2;
-                    const originalCenterY = originalY + photoHeightPx / 2;
-
-                    const distanceFromCenterX = originalCenterX - availableAreaCenterX;
-                    const distanceFromCenterY = originalCenterY - availableAreaCenterY;
-
-                    const mirroredCenterX = availableAreaCenterX - distanceFromCenterX;
-                    const mirroredCenterY = availableAreaCenterY - distanceFromCenterY;
-
-                    mirroredX = mirroredCenterX - photoWidthPx / 2;
-                    mirroredY = originalY; // ✅ FIX: Y GIỮ NGUYÊN - CHỈ MIRROR X!
-
-                    console.log(`🔄 PORTRAIT - Xoay 180°: (${originalX.toFixed(0)}, ${originalY.toFixed(0)}) → (${mirroredX.toFixed(0)}, ${mirroredY.toFixed(0)})`);
-                } else {
-                    // 📐 LANDSCAPE (ngang): Mirror theo duplexFlip
-                    if (config.duplexFlip === 'long-edge') {
-                        // Long-edge binding: mirror theo trục X qua center
-                        const availableAreaCenterX = marginLeftPx + (canvas.width - marginLeftPx - marginRightPx) / 2;
-
-                        const originalCenterX = originalX + photoWidthPx / 2;
-                        const distanceFromCenter = originalCenterX - availableAreaCenterX;
-                        const mirroredCenterX = availableAreaCenterX - distanceFromCenter;
-                        mirroredX = mirroredCenterX - photoWidthPx / 2;
-                        mirroredY = originalY; // Y không đổi
-
-                        console.log(`↔️ LANDSCAPE - Mirror X: (${originalX.toFixed(0)}, ${originalY.toFixed(0)}) → (${mirroredX.toFixed(0)}, ${mirroredY.toFixed(0)})`);
-                    } else {
-                        // Short-edge binding: mirror theo trục Y qua center
-                        const availableAreaCenterY = marginTopPx + (canvas.height - marginTopPx - marginBottomPx) / 2;
-
-                        const originalCenterY = originalY + photoHeightPx / 2;
-                        const distanceFromCenter = originalCenterY - availableAreaCenterY;
-                        const mirroredCenterY = availableAreaCenterY - distanceFromCenter;
-                        mirroredX = originalX; // X không đổi
-                        mirroredY = originalY; // ✅ SHORT-EDGE cũng chỉ mirror X
-
-                        console.log(`↕️ LANDSCAPE - Mirror Y: (${originalX.toFixed(0)}, ${originalY.toFixed(0)}) → (${mirroredX.toFixed(0)}, ${mirroredY.toFixed(0)})`);
-                    }
-                }
+                console.log(`↔️ DUPLEX LONG-EDGE: Front(${originalXmm.toFixed(2)}mm, ${originalYmm.toFixed(2)}mm) → Back(${mirroredXmm.toFixed(2)}mm, ${mirroredYmm.toFixed(2)}mm)`);
 
                 // ⚙️ Apply physical offset (mm → px)
                 const offsetXPx = (config.duplexPhysicalOffset?.x || 0) * dpi / 25.4;
@@ -23829,7 +23768,7 @@
                 console.log(`Image ${i}: Original(${originalX.toFixed(0)},${originalY.toFixed(0)}) -> Mirrored(${mirroredX.toFixed(0)},${mirroredY.toFixed(0)}) -> Final(${finalX.toFixed(0)},${finalY.toFixed(0)}) [Offset: ${(config.duplexPhysicalOffset?.x || 0).toFixed(1)}mm, ${(config.duplexPhysicalOffset?.y || 0).toFixed(1)}mm]`);
 
                 // Vẽ ảnh ở vị trí đã mirror + offset với duplex transformation
-                this.drawImageOnCanvasWithDuplexTransform(ctx, imageData.img, finalX, finalY, photoWidthPx, photoHeightPx, config.fitMode, config.duplexFlip);
+                this.drawImageOnCanvasWithDuplexTransform(ctx, imageData.img, finalX, finalY, photoWidthPx, photoHeightPx, config.fitMode, 'long-edge');
                 imageIndex++;
             }
         }
@@ -23892,23 +23831,10 @@
             ctx.fillStyle = 'white';
             ctx.fillRect(x, y, width, height);
 
-            // ✅ FIX: Portrait cần xoay NỘI DUNG ảnh 180°
-            // Landscape thì KHÔNG xoay (chỉ mirror tọa độ)
             ctx.save();
             ctx.beginPath();
             ctx.rect(x, y, width, height); // Clip vào khung gốc
             ctx.clip();
-
-            // 🔄 XOAY NỘI DUNG ẢNH nếu Portrait
-            if (config.orientation === 'portrait') {
-                // Xoay 180° qua tâm khung ảnh
-                const imageCenterX = x + width / 2;
-                const imageCenterY = y + height / 2;
-                ctx.translate(imageCenterX, imageCenterY);
-                ctx.rotate(Math.PI); // 180°
-                ctx.translate(-imageCenterX, -imageCenterY);
-                console.log(`🔄 Rotating image content 180° for Portrait`);
-            }
 
             // VẼ ẢNH (có bleed nếu bật)
             const drawX = x - bleedPx + offsetX;

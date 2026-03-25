@@ -1,0 +1,22 @@
+GÓI PRINT CHO ELECTRON — MEULayout-print-only.html
+==================================================
+
+ĐÃ TRÍCH:
+- Dòng 1–31488: <head> (CDN: jszip, jspdf, heic2any, UPNG, pdf.js), toàn bộ CSS chính, <body> với các section Convert/Crop/Gallery/Templates, khối #printSection, CSS nhúng trong body, toast, modal PDF, modal template crop, modal preview, modal preset.
+- Dòng 31490–66949: hai khối <script> — logic BatchImageConverter (gồm in ấn, SK316, preset, v.v.) và class InteractivePreview.
+
+KHÔNG GỒM (so với MEULayout.html gốc):
+- File System Section, Auto Print, A4 Test (HTML + script phía sau dòng ~66950).
+- instant_fix.js — dòng script này đã bỏ; nếu cần, copy file instant_fix.js cùng thư mục và thêm: <script src="instant_fix.js"></script> trước </body>.
+
+CÁCH TẠO LẠI FILE:
+  powershell -ExecutionPolicy Bypass -File "extract-print-bundle.ps1"
+
+TÍCH HỢP ELECTRON (gợi ý):
+1. main.js: mainWindow.loadFile('MEULayout-print-only.html') hoặc loadURL với file:// tới file này.
+2. Đặt cùng thư mục với file HTML nếu dùng đường dẫn tương đối.
+3. Chỉ hiện tab Print: sau load, chạy JS ẩn các .function-section khác và gọi chuyển tab Print giống app gốc (sendToSection('print') / hiện #printSection).
+4. WebPreferences: nodeIntegration tùy nhu cầu; nếu cần ghi file từ main process, dùng preload + contextBridge.
+
+PHẦN CHỈ LÀ MARKUP #printSection (tham chiếu nguồn):
+- Trong MEULayout.html: khoảng dòng 21885–23390 (trong đó có .print-container và layout 2 cột).

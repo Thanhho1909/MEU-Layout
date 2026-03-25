@@ -1650,6 +1650,12 @@
             min-width: 80px;
         }
 
+        /* Duplex đã cố định long-edge: ẩn toàn bộ UI chọn hướng lật */
+        .duplex-flip-row,
+        .duplex-flip-options {
+            display: none !important;
+        }
+
         .flip-buttons-inline {
             display: flex;
             gap: 8px;

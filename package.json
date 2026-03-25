@@ -2,12 +2,14 @@
   "name": "meu-layout-tool",
   "version": "1.0.0",
   "description": "Internal image processing tool",
-  "main": "index.html",
+  "main": "electron/main.js",
   "scripts": {
     "start": "serve .",
+    "electron": "electron .",
     "build": "echo 'No build process needed' && exit 0"
   },
   "devDependencies": {
+    "electron": "^33.0.0",
     "serve": "^14.0.0"
   },
   "engines": {
