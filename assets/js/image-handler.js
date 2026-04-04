@@ -12362,6 +12362,15 @@
                             color: '#000000',
                             thickness: 0.5,
                             lineStyle: 'solid'
+                        },
+                        // Nhãn chữ góc trên (xuất PDF/JPG; áp dụng cả mặt trước và mặt sau khi in 2 mặt)
+                        printLabel: {
+                            enabled: false,
+                            text: '',
+                            corner: 'tl', // 'tl' | 'tr'
+                            fontMm: 3,
+                            extraInsetMm: 1,
+                            color: '#111827'
                         }
                     }
                 };
@@ -12376,6 +12385,21 @@
                     this.interactivePreview = new InteractivePreview(this);
                     console.log('🎨 InteractivePreview instance created (disabled by default)');
                 }
+            }
+
+            // Phiên bản cũ có thể thiếu printLabel trong config
+            if (this.printData?.config && !this.printData.config.printLabel) {
+                this.printData.config.printLabel = {
+                    enabled: false,
+                    text: '',
+                    corner: 'tl',
+                    fontMm: 3,
+                    extraInsetMm: 1,
+                    color: '#111827'
+                };
+            }
+            if (typeof this.setupPrintLabelControls === 'function') {
+                this.setupPrintLabelControls();
             }
 
             // Interactive preview TẮT mặc định - chỉ bật khi user click toggle button
@@ -14873,7 +14897,8 @@
                             
                             // 🔧 FIX: Vẽ cutting guides khi xuất file (skipPreviewCheck = true)
                             this.drawCuttingGuides(ctx, masterCanvas, config, true);
-                            
+                            this.drawPrintLabel(ctx, masterCanvas, config);
+
                             // Restore original selectedImages
                             this.printData.selectedImages = originalSelectedImages;
                             
@@ -15233,6 +15258,104 @@
             this.updateGalleryGridDuplexV2();
             this.updateDuplexValidation();
             this.showToast(`🗑️ Đã xóa tất cả ảnh ${typeText}`, 'info');
+        }
+
+        setupPrintLabelControls() {
+            if (!this.printData?.config) return;
+            if (!this.printData.config.printLabel) {
+                this.printData.config.printLabel = {
+                    enabled: false,
+                    text: '',
+                    corner: 'tl',
+                    fontMm: 3,
+                    extraInsetMm: 1,
+                    color: '#111827'
+                };
+            }
+            const pl = this.printData.config.printLabel;
+
+            const syncToDomOnly = () => {
+                const enabledEl = document.getElementById('printLabelEnabled');
+                const textEl = document.getElementById('printLabelText');
+                const cornerEl = document.getElementById('printLabelCorner');
+                const fontMmEl = document.getElementById('printLabelFontMm');
+                const fontMmVal = document.getElementById('printLabelFontMmVal');
+                const extraEl = document.getElementById('printLabelExtraMm');
+                const extraVal = document.getElementById('printLabelExtraMmVal');
+                if (enabledEl) enabledEl.checked = !!pl.enabled;
+                if (textEl) textEl.value = pl.text || '';
+                if (cornerEl) cornerEl.value = pl.corner === 'tr' ? 'tr' : 'tl';
+                if (fontMmEl) fontMmEl.value = String(pl.fontMm != null ? pl.fontMm : 3);
+                if (fontMmVal) fontMmVal.textContent = `${(pl.fontMm != null ? pl.fontMm : 3).toFixed(2)}mm`;
+                if (extraEl) extraEl.value = String(pl.extraInsetMm != null ? pl.extraInsetMm : 1);
+                if (extraVal) extraVal.textContent = `${(pl.extraInsetMm != null ? pl.extraInsetMm : 1).toFixed(2)}mm`;
+            };
+
+            if (this._printLabelControlsBound) {
+                syncToDomOnly();
+                return;
+            }
+            this._printLabelControlsBound = true;
+
+            const enabledEl = document.getElementById('printLabelEnabled');
+            const textEl = document.getElementById('printLabelText');
+            const cornerEl = document.getElementById('printLabelCorner');
+            const fontMmEl = document.getElementById('printLabelFontMm');
+            const fontMmVal = document.getElementById('printLabelFontMmVal');
+            const extraEl = document.getElementById('printLabelExtraMm');
+            const extraVal = document.getElementById('printLabelExtraMmVal');
+
+            const refreshPreview = () => {
+                if (this.printData.config.printMode === 'duplex') {
+                    if (typeof this.renderDuplexCanvas === 'function') {
+                        this.renderDuplexCanvas('front');
+                        this.renderDuplexCanvas('back');
+                    }
+                } else {
+                    this.updatePreview();
+                }
+            };
+
+            const syncFromDom = () => {
+                if (enabledEl) pl.enabled = !!enabledEl.checked;
+                if (textEl) pl.text = textEl.value;
+                if (cornerEl) pl.corner = cornerEl.value === 'tr' ? 'tr' : 'tl';
+                if (fontMmEl) {
+                    const v = parseFloat(fontMmEl.value);
+                    pl.fontMm = !isNaN(v) ? v : 3;
+                    if (fontMmVal) fontMmVal.textContent = `${pl.fontMm.toFixed(2)}mm`;
+                }
+                if (extraEl) {
+                    const v = parseFloat(extraEl.value);
+                    pl.extraInsetMm = !isNaN(v) ? v : 1;
+                    if (extraVal) extraVal.textContent = `${pl.extraInsetMm.toFixed(2)}mm`;
+                }
+            };
+
+            const syncToDom = () => {
+                syncToDomOnly();
+            };
+
+            syncToDom();
+
+            [enabledEl, textEl, cornerEl].forEach(el => {
+                if (!el) return;
+                el.addEventListener('change', () => {
+                    syncFromDom();
+                    refreshPreview();
+                });
+                el.addEventListener('input', () => {
+                    syncFromDom();
+                    refreshPreview();
+                });
+            });
+            [fontMmEl, extraEl].forEach(el => {
+                if (!el) return;
+                el.addEventListener('input', () => {
+                    syncFromDom();
+                    refreshPreview();
+                });
+            });
         }
 
         setupSmartGridControls() {
@@ -17838,7 +17961,8 @@
             
             // 🔧 FIX: Vẽ cutting guides khi xuất file (skipPreviewCheck = true để bỏ qua previewState)
             this.drawCuttingGuides(ctx, masterCanvas, config, true);
-            
+            this.drawPrintLabel(ctx, masterCanvas, config);
+
             return masterCanvas;
         }
 
@@ -17907,6 +18031,7 @@
             // ALWAYS draw guides to show layout (even when showGuides is off for debugging)
             console.log('🎨 Drawing layout guides, showGuides:', this.previewState?.showGuides);
             this.drawLayoutGuides(previewCtx, previewCanvas, scale);
+            this.drawPrintLabel(previewCtx, previewCanvas, config);
 
             // Update display size
             previewCanvas.style.width = previewCanvas.width + 'px';
@@ -18409,6 +18534,77 @@
                 this.updateTotalPages();
                 this.updateMasterCanvas();
             }
+        }
+
+        /**
+         * Vẽ nhãn chữ góc trên (đánh dấu / phân loại bản in).
+         * Vị trí lệch theo lề giấy + lề thêm + ước lượng khoảng an toàn khi có đường cắt.
+         */
+        drawPrintLabel(ctx, canvas, config) {
+            if (!config.printLabel) {
+                config.printLabel = {
+                    enabled: false,
+                    text: '',
+                    corner: 'tl',
+                    fontMm: 3,
+                    extraInsetMm: 1,
+                    color: '#111827'
+                };
+            }
+            const pl = config.printLabel;
+            if (!pl || !pl.enabled) return;
+            const raw = (pl.text != null ? String(pl.text) : '').trim();
+            if (!raw) return;
+
+            const paperW = config.orientation === 'portrait' ? config.paperSize.width : config.paperSize.height;
+            const paperH = config.orientation === 'portrait' ? config.paperSize.height : config.paperSize.width;
+            const m = config.margins || { top: 5, bottom: 5, left: 5, right: 5 };
+            const fontMm = Math.max(1.2, Math.min(14, pl.fontMm != null ? pl.fontMm : 3));
+            const extraMm = Math.max(0, Math.min(8, pl.extraInsetMm != null ? pl.extraInsetMm : 1));
+            const corner = pl.corner === 'tr' ? 'tr' : 'tl';
+            const cg = config.cuttingGuides || {};
+            const guidesPadMm = (cg.outerCuttingLines || cg.betweenImages || cg.cornerMarks) ? 1.2 : 0;
+
+            const topMm = (m.top || 0) + extraMm + guidesPadMm;
+            const leftMm = (m.left || 0) + extraMm + guidesPadMm;
+            const rightMm = (m.right || 0) + extraMm + guidesPadMm;
+
+            const mmToPxX = canvas.width / paperW;
+            const mmToPxY = canvas.height / paperH;
+            const fontPx = Math.max(8, fontMm * ((mmToPxX + mmToPxY) / 2));
+
+            const lines = raw.split(/\n/).map(s => s.trim()).filter(Boolean).slice(0, 6);
+            if (lines.length === 0) return;
+            const lineHeight = fontPx * 1.22;
+
+            ctx.save();
+            ctx.font = `600 ${Math.round(fontPx)}px system-ui, "Segoe UI", sans-serif`;
+            ctx.textBaseline = 'top';
+            ctx.textAlign = 'left';
+
+            let maxW = 0;
+            lines.forEach(line => {
+                const w = ctx.measureText(line).width;
+                if (w > maxW) maxW = w;
+            });
+
+            let x = leftMm * mmToPxX;
+            if (corner === 'tr') {
+                x = canvas.width - rightMm * mmToPxX - maxW;
+            }
+            const y = topMm * mmToPxY;
+
+            const fill = pl.color || '#111827';
+            ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+            ctx.lineWidth = Math.max(2, fontPx * 0.14);
+            ctx.fillStyle = fill;
+
+            lines.forEach((line, i) => {
+                const yy = y + i * lineHeight;
+                ctx.strokeText(line, x, yy);
+                ctx.fillText(line, x, yy);
+            });
+            ctx.restore();
         }
 
         drawCuttingGuides(ctx, canvas, config, skipPreviewCheck = false) {
@@ -22948,6 +23144,7 @@
 
                             // 🚫 KHÔNG vẽ cutting guides cho mặt sau (mặt trước đã có đủ)
                             // this.drawCuttingGuides(ctx, masterCanvas, config);
+                            this.drawPrintLabel(ctx, masterCanvas, config);
 
                             // Restore original selectedImages
                             this.printData.selectedImages = originalSelectedImages;

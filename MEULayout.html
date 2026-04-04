@@ -15487,6 +15487,76 @@
             min-width: 80px;
         }
 
+        .print-label-row {
+            margin-top: 4px;
+        }
+
+        .print-label-block .print-label-hint {
+            margin: 0 0 10px 0;
+            font-size: 0.82em;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .print-label-line1 {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 10px 14px;
+            margin-bottom: 10px;
+        }
+
+        .print-label-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            color: #0f172a;
+            white-space: nowrap;
+            padding-top: 6px;
+        }
+
+        .print-label-textarea {
+            flex: 1;
+            min-width: 180px;
+            min-height: 2.5em;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 0.9em;
+        }
+
+        .print-label-line2 {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            font-size: 0.88em;
+        }
+
+        .print-label-line2 > label {
+            font-weight: 600;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        .print-label-select {
+            min-width: 120px;
+        }
+
+        .print-label-line2 input[type="range"] {
+            flex: 1;
+            min-width: 80px;
+            max-width: 160px;
+        }
+
+        .print-label-val {
+            min-width: 4.5em;
+            font-variant-numeric: tabular-nums;
+            color: #0369a1;
+            font-weight: 600;
+            font-size: 0.92em;
+        }
+
         .flip-buttons-inline {
             display: flex;
             gap: 8px;
@@ -22197,6 +22267,30 @@
                                             <option value="single">In 1 mặt</option>
                                             <option value="duplex">In 2 mặt thủ công</option>
                                         </select>
+                                    </div>
+                                </div>
+
+                                <div class="settings-row print-label-row">
+                                    <div class="setting-group full-width print-label-block">
+                                        <label><svg class="svg-icon"><use href="#icon-target"></use></svg> Nhãn in (góc trên)</label>
+                                        <p class="print-label-hint">Hiển thị trên file xuất và xem trước; áp dụng cả mặt trước và mặt sau khi in 2 mặt. Vị trí lệch theo lề giấy và đường cắt.</p>
+                                        <div class="print-label-line1">
+                                            <label class="print-label-toggle"><input type="checkbox" id="printLabelEnabled"> Bật nhãn</label>
+                                            <textarea id="printLabelText" class="compact-input print-label-textarea" rows="2" placeholder="VD: Lô A — MS: 012 (xuống dòng = nhiều dòng)" maxlength="200"></textarea>
+                                        </div>
+                                        <div class="print-label-line2">
+                                            <label>Góc</label>
+                                            <select id="printLabelCorner" class="compact-select print-label-select">
+                                                <option value="tl">Trên trái</option>
+                                                <option value="tr">Trên phải</option>
+                                            </select>
+                                            <label>Cỡ chữ</label>
+                                            <input type="range" id="printLabelFontMm" min="1.5" max="8" step="0.25" value="3">
+                                            <span id="printLabelFontMmVal" class="print-label-val">3.00mm</span>
+                                            <label>Lề thêm</label>
+                                            <input type="range" id="printLabelExtraMm" min="0" max="5" step="0.25" value="1">
+                                            <span id="printLabelExtraMmVal" class="print-label-val">1.00mm</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -46903,6 +46997,14 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                             color: '#000000',
                             thickness: 0.5,
                             lineStyle: 'solid'
+                        },
+                        printLabel: {
+                            enabled: false,
+                            text: '',
+                            corner: 'tl',
+                            fontMm: 3,
+                            extraInsetMm: 1,
+                            color: '#111827'
                         }
                     },
                     sk316EditableMode: false, // Chế độ chỉnh sửa tọa độ SK316
@@ -46922,6 +47024,20 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                     this.interactivePreview = new InteractivePreview(this);
                     console.log('🎨 InteractivePreview instance created (disabled by default)');
                 }
+            }
+
+            if (this.printData?.config && !this.printData.config.printLabel) {
+                this.printData.config.printLabel = {
+                    enabled: false,
+                    text: '',
+                    corner: 'tl',
+                    fontMm: 3,
+                    extraInsetMm: 1,
+                    color: '#111827'
+                };
+            }
+            if (typeof this.setupPrintLabelControls === 'function') {
+                this.setupPrintLabelControls();
             }
 
             // Interactive preview TẮT mặc định - chỉ bật khi user click toggle button
@@ -49556,6 +49672,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                             
                             // 🔧 FIX: Vẽ cutting guides khi xuất file (skipPreviewCheck = true để bỏ qua previewState)
                             this.drawCuttingGuides(ctx, masterCanvas, config, true);
+                            this.drawPrintLabel(ctx, masterCanvas, config);
                             
                             // Restore original selectedImages
                             this.printData.selectedImages = originalSelectedImages;
@@ -52885,6 +53002,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             
             // 🔧 FIX: Vẽ cutting guides khi xuất file (skipPreviewCheck = true để bỏ qua previewState)
             this.drawCuttingGuides(ctx, masterCanvas, config, true);
+            this.drawPrintLabel(ctx, masterCanvas, config);
             
             console.log('🔍 After drawCuttingGuides call');
             
@@ -53014,6 +53132,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
             // ALWAYS draw guides to show layout (even when showGuides is off for debugging)
             console.log('🎨 Drawing layout guides, showGuides:', this.previewState?.showGuides);
             this.drawLayoutGuides(previewCtx, previewCanvas, scale);
+            this.drawPrintLabel(previewCtx, previewCanvas, config);
 
             // Update display size
             previewCanvas.style.width = previewCanvas.width + 'px';
@@ -53659,6 +53778,171 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
                 this.updateTotalPages();
                 this.updateMasterCanvas();
             }
+        }
+
+        setupPrintLabelControls() {
+            if (!this.printData?.config) return;
+            if (!this.printData.config.printLabel) {
+                this.printData.config.printLabel = {
+                    enabled: false,
+                    text: '',
+                    corner: 'tl',
+                    fontMm: 3,
+                    extraInsetMm: 1,
+                    color: '#111827'
+                };
+            }
+            const pl = this.printData.config.printLabel;
+
+            const syncToDomOnly = () => {
+                const enabledEl = document.getElementById('printLabelEnabled');
+                const textEl = document.getElementById('printLabelText');
+                const cornerEl = document.getElementById('printLabelCorner');
+                const fontMmEl = document.getElementById('printLabelFontMm');
+                const fontMmVal = document.getElementById('printLabelFontMmVal');
+                const extraEl = document.getElementById('printLabelExtraMm');
+                const extraVal = document.getElementById('printLabelExtraMmVal');
+                if (enabledEl) enabledEl.checked = !!pl.enabled;
+                if (textEl) textEl.value = pl.text || '';
+                if (cornerEl) cornerEl.value = pl.corner === 'tr' ? 'tr' : 'tl';
+                if (fontMmEl) fontMmEl.value = String(pl.fontMm != null ? pl.fontMm : 3);
+                if (fontMmVal) fontMmVal.textContent = `${(pl.fontMm != null ? pl.fontMm : 3).toFixed(2)}mm`;
+                if (extraEl) extraEl.value = String(pl.extraInsetMm != null ? pl.extraInsetMm : 1);
+                if (extraVal) extraVal.textContent = `${(pl.extraInsetMm != null ? pl.extraInsetMm : 1).toFixed(2)}mm`;
+            };
+
+            if (this._printLabelControlsBound) {
+                syncToDomOnly();
+                return;
+            }
+            this._printLabelControlsBound = true;
+
+            const enabledEl = document.getElementById('printLabelEnabled');
+            const textEl = document.getElementById('printLabelText');
+            const cornerEl = document.getElementById('printLabelCorner');
+            const fontMmEl = document.getElementById('printLabelFontMm');
+            const fontMmVal = document.getElementById('printLabelFontMmVal');
+            const extraEl = document.getElementById('printLabelExtraMm');
+            const extraVal = document.getElementById('printLabelExtraMmVal');
+
+            const refreshPreview = () => {
+                if (this.printData.config.printMode === 'duplex') {
+                    if (typeof this.renderDuplexCanvas === 'function') {
+                        this.renderDuplexCanvas('front');
+                        this.renderDuplexCanvas('back');
+                    }
+                } else {
+                    this.updatePreview();
+                }
+            };
+
+            const syncFromDom = () => {
+                if (enabledEl) pl.enabled = !!enabledEl.checked;
+                if (textEl) pl.text = textEl.value;
+                if (cornerEl) pl.corner = cornerEl.value === 'tr' ? 'tr' : 'tl';
+                if (fontMmEl) {
+                    const v = parseFloat(fontMmEl.value);
+                    pl.fontMm = !isNaN(v) ? v : 3;
+                    if (fontMmVal) fontMmVal.textContent = `${pl.fontMm.toFixed(2)}mm`;
+                }
+                if (extraEl) {
+                    const v = parseFloat(extraEl.value);
+                    pl.extraInsetMm = !isNaN(v) ? v : 1;
+                    if (extraVal) extraVal.textContent = `${pl.extraInsetMm.toFixed(2)}mm`;
+                }
+            };
+
+            const syncToDom = () => {
+                syncToDomOnly();
+            };
+
+            syncToDom();
+
+            [enabledEl, textEl, cornerEl].forEach(el => {
+                if (!el) return;
+                el.addEventListener('change', () => {
+                    syncFromDom();
+                    refreshPreview();
+                });
+                el.addEventListener('input', () => {
+                    syncFromDom();
+                    refreshPreview();
+                });
+            });
+            [fontMmEl, extraEl].forEach(el => {
+                if (!el) return;
+                el.addEventListener('input', () => {
+                    syncFromDom();
+                    refreshPreview();
+                });
+            });
+        }
+
+        drawPrintLabel(ctx, canvas, config) {
+            if (!config.printLabel) {
+                config.printLabel = {
+                    enabled: false,
+                    text: '',
+                    corner: 'tl',
+                    fontMm: 3,
+                    extraInsetMm: 1,
+                    color: '#111827'
+                };
+            }
+            const pl = config.printLabel;
+            if (!pl || !pl.enabled) return;
+            const raw = (pl.text != null ? String(pl.text) : '').trim();
+            if (!raw) return;
+
+            const paperW = config.orientation === 'portrait' ? config.paperSize.width : config.paperSize.height;
+            const paperH = config.orientation === 'portrait' ? config.paperSize.height : config.paperSize.width;
+            const m = config.margins || { top: 5, bottom: 5, left: 5, right: 5 };
+            const fontMm = Math.max(1.2, Math.min(14, pl.fontMm != null ? pl.fontMm : 3));
+            const extraMm = Math.max(0, Math.min(8, pl.extraInsetMm != null ? pl.extraInsetMm : 1));
+            const corner = pl.corner === 'tr' ? 'tr' : 'tl';
+            const cg = config.cuttingGuides || {};
+            const guidesPadMm = (cg.outerCuttingLines || cg.betweenImages || cg.cornerMarks) ? 1.2 : 0;
+
+            const topMm = (m.top || 0) + extraMm + guidesPadMm;
+            const leftMm = (m.left || 0) + extraMm + guidesPadMm;
+            const rightMm = (m.right || 0) + extraMm + guidesPadMm;
+
+            const mmToPxX = canvas.width / paperW;
+            const mmToPxY = canvas.height / paperH;
+            const fontPx = Math.max(8, fontMm * ((mmToPxX + mmToPxY) / 2));
+
+            const lines = raw.split(/\n/).map(s => s.trim()).filter(Boolean).slice(0, 6);
+            if (lines.length === 0) return;
+            const lineHeight = fontPx * 1.22;
+
+            ctx.save();
+            ctx.font = `600 ${Math.round(fontPx)}px system-ui, "Segoe UI", sans-serif`;
+            ctx.textBaseline = 'top';
+            ctx.textAlign = 'left';
+
+            let maxW = 0;
+            lines.forEach(line => {
+                const w = ctx.measureText(line).width;
+                if (w > maxW) maxW = w;
+            });
+
+            let x = leftMm * mmToPxX;
+            if (corner === 'tr') {
+                x = canvas.width - rightMm * mmToPxX - maxW;
+            }
+            const y = topMm * mmToPxY;
+
+            const fill = pl.color || '#111827';
+            ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+            ctx.lineWidth = Math.max(2, fontPx * 0.14);
+            ctx.fillStyle = fill;
+
+            lines.forEach((line, i) => {
+                const yy = y + i * lineHeight;
+                ctx.strokeText(line, x, yy);
+                ctx.fillText(line, x, yy);
+            });
+            ctx.restore();
         }
 
         drawCuttingGuides(ctx, canvas, config, skipPreviewCheck = false) {
@@ -58483,6 +58767,7 @@ Click ảnh, Right-click menu, Phím tắt: R (xoay), V (lật dọc), H (lật 
 
                             // 🚫 KHÔNG vẽ cutting guides cho mặt sau (mặt trước đã có đủ)
                             // this.drawCuttingGuides(ctx, masterCanvas, config);
+                            this.drawPrintLabel(ctx, masterCanvas, config);
 
                             // Restore original selectedImages
                             this.printData.selectedImages = originalSelectedImages;

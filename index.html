@@ -2500,6 +2500,30 @@
                                     </div>
                                 </div>
 
+                                <div class="settings-row print-label-row">
+                                    <div class="setting-group full-width print-label-block">
+                                        <label><svg class="svg-icon"><use href="#icon-target"></use></svg> Nhãn in (góc trên)</label>
+                                        <p class="print-label-hint">Hiển thị trên file xuất và xem trước; áp dụng cả mặt trước và mặt sau khi in 2 mặt. Vị trí lệch theo lề giấy và đường cắt.</p>
+                                        <div class="print-label-line1">
+                                            <label class="print-label-toggle"><input type="checkbox" id="printLabelEnabled"> Bật nhãn</label>
+                                            <textarea id="printLabelText" class="compact-input print-label-textarea" rows="2" placeholder="VD: Lô A — MS: 012 (xuống dòng = nhiều dòng)" maxlength="200"></textarea>
+                                        </div>
+                                        <div class="print-label-line2">
+                                            <label>Góc</label>
+                                            <select id="printLabelCorner" class="compact-select print-label-select">
+                                                <option value="tl">Trên trái</option>
+                                                <option value="tr">Trên phải</option>
+                                            </select>
+                                            <label>Cỡ chữ</label>
+                                            <input type="range" id="printLabelFontMm" min="1.5" max="8" step="0.25" value="3">
+                                            <span id="printLabelFontMmVal" class="print-label-val">3.00mm</span>
+                                            <label>Lề thêm</label>
+                                            <input type="range" id="printLabelExtraMm" min="0" max="5" step="0.25" value="1">
+                                            <span id="printLabelExtraMmVal" class="print-label-val">1.00mm</span>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Duplex Configuration (hiện khi chọn In 2 mặt) -->
                                 <div class="duplex-config-inline" id="duplexConfigInline" style="display: none;">
                                     <div class="duplex-section-header">
