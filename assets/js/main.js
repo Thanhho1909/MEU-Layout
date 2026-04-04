@@ -1,4 +1,4 @@
-﻿        // ===== AUTO PRINT SECTION CLASS =====
+        // ===== AUTO PRINT SECTION CLASS =====
         class AutoPrintSection {
             constructor() {
                 this.selectedFolder = null;
@@ -700,6 +700,16 @@
                                 betweenImages: true,
                                 cornerMarks: true,
                                 gridHelperLines: false
+                            },
+                            printLabel: {
+                                enabled: false,
+                                text: '',
+                                usePerPageText: false,
+                                pageTexts: {},
+                                corner: 'tl',
+                                fontMm: 3,
+                                extraInsetMm: 1,
+                                color: '#111827'
                             }
                         }
                     };

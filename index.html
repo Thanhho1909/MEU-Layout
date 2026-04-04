@@ -2503,10 +2503,27 @@
                                 <div class="settings-row print-label-row">
                                     <div class="setting-group full-width print-label-block">
                                         <label><svg class="svg-icon"><use href="#icon-target"></use></svg> Nhãn in (góc trên)</label>
-                                        <p class="print-label-hint">Hiển thị trên file xuất và xem trước; áp dụng cả mặt trước và mặt sau khi in 2 mặt. Vị trí lệch theo lề giấy và đường cắt.</p>
+                                        <p class="print-label-hint">Hiển thị trên file xuất và xem trước; in 2 mặt dùng cùng nội dung theo số trang tờ. Vị trí theo lề và đường cắt. Có thể đặt nội dung khác theo từng trang (góc/cỡ/lề vẫn chung).</p>
                                         <div class="print-label-line1">
                                             <label class="print-label-toggle"><input type="checkbox" id="printLabelEnabled"> Bật nhãn</label>
-                                            <textarea id="printLabelText" class="compact-input print-label-textarea" rows="2" placeholder="VD: Lô A — MS: 012 (xuống dòng = nhiều dòng)" maxlength="200"></textarea>
+                                            <div class="print-label-default-col">
+                                                <span class="print-label-field-label" id="printLabelTextLabel">Nội dung nhãn:</span>
+                                                <textarea id="printLabelText" class="compact-input print-label-textarea" rows="2" placeholder="VD: Lô A — MS: 012 (xuống dòng = nhiều dòng)" maxlength="200"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="print-label-per-page-row" id="printLabelPerPageRow">
+                                            <label class="print-label-toggle print-label-per-page-check"><input type="checkbox" id="printLabelPerPage"> Nội dung khác theo từng trang</label>
+                                        </div>
+                                        <div class="print-label-per-page-wrap" id="printLabelPerPageWrap" style="display:none;">
+                                            <div class="print-label-page-toolbar">
+                                                <label class="print-label-toolbar-label" for="printLabelPageSelect">Trang</label>
+                                                <select id="printLabelPageSelect" class="compact-select print-label-page-select" aria-label="Chọn trang để sửa nhãn"></select>
+                                                <button type="button" class="print-label-btn" id="printLabelCopyDefaultBtn" title="Chép nội dung mặc định vào trang đang chọn">Chép mặc định → trang này</button>
+                                                <button type="button" class="print-label-btn print-label-btn-secondary" id="printLabelApplyAllBtn" title="Gán cùng nội dung mặc định cho mọi trang">Gán mặc định cho tất cả trang</button>
+                                            </div>
+                                            <label class="print-label-sr-only" for="printLabelPageText">Nhãn riêng trang đang chọn</label>
+                                            <textarea id="printLabelPageText" class="compact-input print-label-textarea print-label-page-textarea" rows="2" maxlength="200" placeholder="Để trống = dùng nội dung mặc định phía trên"></textarea>
+                                            <p class="print-label-page-hint">Trang không ghi riêng sẽ hiển thị đúng nội dung trong ô mặc định. Số trang khớp với bản in (đơn hoặc 2 mặt).</p>
                                         </div>
                                         <div class="print-label-line2">
                                             <label>Góc</label>

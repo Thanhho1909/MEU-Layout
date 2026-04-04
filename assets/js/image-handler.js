@@ -12367,6 +12367,8 @@
                         printLabel: {
                             enabled: false,
                             text: '',
+                            usePerPageText: false,
+                            pageTexts: {}, // { "0": "...", "1": "..." } — chỉ nội dung chữ khác theo trang
                             corner: 'tl', // 'tl' | 'tr'
                             fontMm: 3,
                             extraInsetMm: 1,
@@ -12392,11 +12394,18 @@
                 this.printData.config.printLabel = {
                     enabled: false,
                     text: '',
+                    usePerPageText: false,
+                    pageTexts: {},
                     corner: 'tl',
                     fontMm: 3,
                     extraInsetMm: 1,
                     color: '#111827'
                 };
+            }
+            if (this.printData?.config?.printLabel) {
+                const plm = this.printData.config.printLabel;
+                if (plm.pageTexts == null || typeof plm.pageTexts !== 'object') plm.pageTexts = {};
+                if (plm.usePerPageText == null) plm.usePerPageText = false;
             }
             if (typeof this.setupPrintLabelControls === 'function') {
                 this.setupPrintLabelControls();
@@ -14785,12 +14794,13 @@
             
             // Create master canvas for this side using WYSIWYG system
             let masterCanvas;
+            const duplexPage = this.printData.currentPage != null ? this.printData.currentPage : 0;
             if (side === 'back') {
                 // For back side preview, use mirrored canvas
-                masterCanvas = await this.createDuplexBackCanvasClassified();
+                masterCanvas = await this.createDuplexBackCanvasClassified(duplexPage);
             } else {
                 // For front side preview, use normal canvas
-                masterCanvas = await this.createDuplexMasterCanvas(side, 0);
+                masterCanvas = await this.createDuplexMasterCanvas(side, duplexPage);
             }
             
             if (!masterCanvas) {
@@ -14897,7 +14907,7 @@
                             
                             // 🔧 FIX: Vẽ cutting guides khi xuất file (skipPreviewCheck = true)
                             this.drawCuttingGuides(ctx, masterCanvas, config, true);
-                            this.drawPrintLabel(ctx, masterCanvas, config);
+                            this.drawPrintLabel(ctx, masterCanvas, config, pageIndex);
 
                             // Restore original selectedImages
                             this.printData.selectedImages = originalSelectedImages;
@@ -15162,6 +15172,10 @@
             if (maxPagesEl) maxPagesEl.textContent = maxPages;
             if (frontCountHeader) frontCountHeader.textContent = frontCount;
             if (backCountHeader) backCountHeader.textContent = backCount;
+
+            if (typeof this._refreshPrintLabelPageUI === 'function') {
+                this._refreshPrintLabelPageUI();
+            }
         }
 
         updateClassificationDisplay() {
@@ -15266,6 +15280,8 @@
                 this.printData.config.printLabel = {
                     enabled: false,
                     text: '',
+                    usePerPageText: false,
+                    pageTexts: {},
                     corner: 'tl',
                     fontMm: 3,
                     extraInsetMm: 1,
@@ -15273,10 +15289,13 @@
                 };
             }
             const pl = this.printData.config.printLabel;
+            if (pl.pageTexts == null || typeof pl.pageTexts !== 'object') pl.pageTexts = {};
+            if (pl.usePerPageText == null) pl.usePerPageText = false;
 
             const syncToDomOnly = () => {
                 const enabledEl = document.getElementById('printLabelEnabled');
                 const textEl = document.getElementById('printLabelText');
+                const perPageEl = document.getElementById('printLabelPerPage');
                 const cornerEl = document.getElementById('printLabelCorner');
                 const fontMmEl = document.getElementById('printLabelFontMm');
                 const fontMmVal = document.getElementById('printLabelFontMmVal');
@@ -15284,26 +15303,18 @@
                 const extraVal = document.getElementById('printLabelExtraMmVal');
                 if (enabledEl) enabledEl.checked = !!pl.enabled;
                 if (textEl) textEl.value = pl.text || '';
+                if (perPageEl) perPageEl.checked = !!pl.usePerPageText;
                 if (cornerEl) cornerEl.value = pl.corner === 'tr' ? 'tr' : 'tl';
                 if (fontMmEl) fontMmEl.value = String(pl.fontMm != null ? pl.fontMm : 3);
                 if (fontMmVal) fontMmVal.textContent = `${(pl.fontMm != null ? pl.fontMm : 3).toFixed(2)}mm`;
                 if (extraEl) extraEl.value = String(pl.extraInsetMm != null ? pl.extraInsetMm : 1);
                 if (extraVal) extraVal.textContent = `${(pl.extraInsetMm != null ? pl.extraInsetMm : 1).toFixed(2)}mm`;
+                const perPageEl2 = document.getElementById('printLabelPerPage');
+                const sel2 = document.getElementById('printLabelPageSelect');
+                const pageTa2 = document.getElementById('printLabelPageText');
+                if (perPageEl2) pl.usePerPageText = !!perPageEl2.checked;
+                if (sel2 && pageTa2 && pl.usePerPageText) pl.pageTexts[sel2.value] = pageTa2.value;
             };
-
-            if (this._printLabelControlsBound) {
-                syncToDomOnly();
-                return;
-            }
-            this._printLabelControlsBound = true;
-
-            const enabledEl = document.getElementById('printLabelEnabled');
-            const textEl = document.getElementById('printLabelText');
-            const cornerEl = document.getElementById('printLabelCorner');
-            const fontMmEl = document.getElementById('printLabelFontMm');
-            const fontMmVal = document.getElementById('printLabelFontMmVal');
-            const extraEl = document.getElementById('printLabelExtraMm');
-            const extraVal = document.getElementById('printLabelExtraMmVal');
 
             const refreshPreview = () => {
                 if (this.printData.config.printMode === 'duplex') {
@@ -15316,9 +15327,87 @@
                 }
             };
 
+            const refreshPageUI = () => {
+                const enabledEl = document.getElementById('printLabelEnabled');
+                const perPageEl = document.getElementById('printLabelPerPage');
+                const wrap = document.getElementById('printLabelPerPageWrap');
+                const textLabel = document.getElementById('printLabelTextLabel');
+                const sel = document.getElementById('printLabelPageSelect');
+                const pageTa = document.getElementById('printLabelPageText');
+                const perPageRow = document.getElementById('printLabelPerPageRow');
+                if (!pl.pageTexts || typeof pl.pageTexts !== 'object') pl.pageTexts = {};
+
+                const enabled = !!(enabledEl && enabledEl.checked);
+                const usePer = !!(perPageEl && perPageEl.checked);
+                pl.usePerPageText = usePer;
+
+                if (textLabel) {
+                    textLabel.textContent = usePer && enabled
+                        ? 'Nội dung mặc định (trang chưa nhập riêng sẽ dùng dòng này):'
+                        : 'Nội dung nhãn:';
+                }
+                if (perPageRow) {
+                    perPageRow.style.display = enabled ? 'flex' : 'none';
+                }
+                if (wrap) {
+                    wrap.style.display = enabled && usePer ? 'block' : 'none';
+                }
+
+                const total = typeof this.getPrintLabelPageCount === 'function'
+                    ? this.getPrintLabelPageCount()
+                    : Math.max(1, this.printData.totalPages || 1);
+
+                if (sel && pageTa) {
+                    const prevKey = sel.value;
+                    if (prevKey !== '') {
+                        pl.pageTexts[prevKey] = pageTa.value;
+                    }
+
+                    sel.innerHTML = '';
+                    for (let i = 0; i < total; i++) {
+                        const opt = document.createElement('option');
+                        opt.value = String(i);
+                        opt.textContent = `Trang ${i + 1}`;
+                        sel.appendChild(opt);
+                    }
+
+                    let idx = 0;
+                    if (prevKey !== '' && !isNaN(parseInt(prevKey, 10))) {
+                        idx = Math.min(Math.max(0, parseInt(prevKey, 10)), total - 1);
+                    }
+                    sel.value = String(idx);
+                    pageTa.value = pl.pageTexts[sel.value] != null ? pl.pageTexts[sel.value] : '';
+                    pageTa.placeholder = `Nhãn riêng cho ${sel.options[sel.selectedIndex]?.textContent || 'trang này'} (để trống = dùng mặc định)`;
+                    sel.dataset.prevPageKey = sel.value;
+                }
+            };
+
+            this._refreshPrintLabelPageUI = refreshPageUI;
+
+            if (this._printLabelControlsBound) {
+                syncToDomOnly();
+                refreshPageUI();
+                return;
+            }
+            this._printLabelControlsBound = true;
+
+            const enabledEl = document.getElementById('printLabelEnabled');
+            const textEl = document.getElementById('printLabelText');
+            const perPageEl = document.getElementById('printLabelPerPage');
+            const cornerEl = document.getElementById('printLabelCorner');
+            const fontMmEl = document.getElementById('printLabelFontMm');
+            const fontMmVal = document.getElementById('printLabelFontMmVal');
+            const extraEl = document.getElementById('printLabelExtraMm');
+            const extraVal = document.getElementById('printLabelExtraMmVal');
+            const sel = document.getElementById('printLabelPageSelect');
+            const pageTa = document.getElementById('printLabelPageText');
+            const btnCopy = document.getElementById('printLabelCopyDefaultBtn');
+            const btnAll = document.getElementById('printLabelApplyAllBtn');
+
             const syncFromDom = () => {
                 if (enabledEl) pl.enabled = !!enabledEl.checked;
                 if (textEl) pl.text = textEl.value;
+                if (perPageEl) pl.usePerPageText = !!perPageEl.checked;
                 if (cornerEl) pl.corner = cornerEl.value === 'tr' ? 'tr' : 'tl';
                 if (fontMmEl) {
                     const v = parseFloat(fontMmEl.value);
@@ -15330,32 +15419,89 @@
                     pl.extraInsetMm = !isNaN(v) ? v : 1;
                     if (extraVal) extraVal.textContent = `${pl.extraInsetMm.toFixed(2)}mm`;
                 }
+                if (sel && pageTa && pl.usePerPageText) {
+                    pl.pageTexts[sel.value] = pageTa.value;
+                }
             };
 
             const syncToDom = () => {
                 syncToDomOnly();
+                refreshPageUI();
             };
 
             syncToDom();
 
-            [enabledEl, textEl, cornerEl].forEach(el => {
+            const bind = (el, ev = 'input') => {
                 if (!el) return;
-                el.addEventListener('change', () => {
+                el.addEventListener(ev, () => {
+                    syncFromDom();
+                    refreshPageUI();
+                    refreshPreview();
+                });
+            };
+
+            [enabledEl, textEl, cornerEl].forEach(el => bind(el, 'input'));
+            [enabledEl, cornerEl].forEach(el => bind(el, 'change'));
+            bind(textEl, 'change');
+
+            if (perPageEl) {
+                perPageEl.addEventListener('change', () => {
+                    syncFromDom();
+                    refreshPageUI();
+                    refreshPreview();
+                });
+            }
+
+            [fontMmEl, extraEl].forEach(el => bind(el, 'input'));
+
+            if (sel) {
+                sel.addEventListener('focus', () => {
+                    sel.dataset.prevPageKey = sel.value;
+                });
+                sel.addEventListener('change', () => {
+                    const prev = sel.dataset.prevPageKey;
+                    if (pageTa && prev !== undefined && prev !== '') {
+                        pl.pageTexts[prev] = pageTa.value;
+                    }
+                    sel.dataset.prevPageKey = sel.value;
+                    if (pageTa) {
+                        pageTa.value = pl.pageTexts[sel.value] != null ? pl.pageTexts[sel.value] : '';
+                    }
                     syncFromDom();
                     refreshPreview();
                 });
-                el.addEventListener('input', () => {
+            }
+            if (pageTa) {
+                pageTa.addEventListener('input', () => {
                     syncFromDom();
                     refreshPreview();
                 });
-            });
-            [fontMmEl, extraEl].forEach(el => {
-                if (!el) return;
-                el.addEventListener('input', () => {
+            }
+
+            if (btnCopy) {
+                btnCopy.addEventListener('click', () => {
                     syncFromDom();
+                    if (pageTa && textEl) {
+                        pageTa.value = textEl.value;
+                        if (sel) pl.pageTexts[sel.value] = pageTa.value;
+                    }
                     refreshPreview();
                 });
-            });
+            }
+            if (btnAll) {
+                btnAll.addEventListener('click', () => {
+                    syncFromDom();
+                    const total = typeof this.getPrintLabelPageCount === 'function'
+                        ? this.getPrintLabelPageCount()
+                        : Math.max(1, this.printData.totalPages || 1);
+                    const t = pl.text || '';
+                    for (let i = 0; i < total; i++) {
+                        pl.pageTexts[String(i)] = t;
+                    }
+                    refreshPageUI();
+                    refreshPreview();
+                });
+            }
         }
 
         setupSmartGridControls() {
@@ -16816,6 +16962,10 @@
             if (prevBtn) prevBtn.disabled = this.printData.currentPage <= 0;
             if (nextBtn) nextBtn.disabled = this.printData.currentPage >= this.printData.totalPages - 1;
             if (pageIndicator) pageIndicator.textContent = `Trang ${this.printData.currentPage + 1}/${this.printData.totalPages}`;
+
+            if (typeof this._refreshPrintLabelPageUI === 'function') {
+                this._refreshPrintLabelPageUI();
+            }
         }
 
         handlePrintImages(files) {
@@ -17961,7 +18111,7 @@
             
             // 🔧 FIX: Vẽ cutting guides khi xuất file (skipPreviewCheck = true để bỏ qua previewState)
             this.drawCuttingGuides(ctx, masterCanvas, config, true);
-            this.drawPrintLabel(ctx, masterCanvas, config);
+            this.drawPrintLabel(ctx, masterCanvas, config, pageIndex);
 
             return masterCanvas;
         }
@@ -18031,7 +18181,8 @@
             // ALWAYS draw guides to show layout (even when showGuides is off for debugging)
             console.log('🎨 Drawing layout guides, showGuides:', this.previewState?.showGuides);
             this.drawLayoutGuides(previewCtx, previewCanvas, scale);
-            this.drawPrintLabel(previewCtx, previewCanvas, config);
+            const previewPage = this.printData.currentPage != null ? this.printData.currentPage : 0;
+            this.drawPrintLabel(previewCtx, previewCanvas, config, previewPage);
 
             // Update display size
             previewCanvas.style.width = previewCanvas.width + 'px';
@@ -18512,18 +18663,11 @@
             console.log(`🔄 Vẽ ảnh xoay ${rotation}° tại (${x}, ${y}) kích thước ${width}×${height}, bleed=${bleed}mm`);
         }
 
-        showPreviousPage() {
-            if (this.printData.currentPage > 0) {
-                this.printData.currentPage--;
-                this.updateTotalPages();
-                this.renderPage(this.printData.currentPage);
-            }
-        }
-
         showNextPage() {
             if (this.printData.currentPage < this.printData.totalPages - 1) {
                 this.printData.currentPage++;
                 this.updateTotalPages();
+                this.syncPrintLabelPickerToCurrentPage();
                 this.updateMasterCanvas();
             }
         }
@@ -18532,19 +18676,72 @@
             if (this.printData.currentPage > 0) {
                 this.printData.currentPage--;
                 this.updateTotalPages();
+                this.syncPrintLabelPickerToCurrentPage();
                 this.updateMasterCanvas();
             }
+        }
+
+        /** Đồng bộ dropdown nhãn theo trang với trang xem trước (prev/next). */
+        syncPrintLabelPickerToCurrentPage() {
+            const pl = this.printData?.config?.printLabel;
+            const sel = document.getElementById('printLabelPageSelect');
+            const pageTa = document.getElementById('printLabelPageText');
+            if (!pl || !pl.enabled || !pl.usePerPageText || !sel || !pageTa) return;
+            const total = typeof this.getPrintLabelPageCount === 'function'
+                ? this.getPrintLabelPageCount()
+                : Math.max(1, this.printData.totalPages || 1);
+            const cp = String(Math.min(Math.max(0, this.printData.currentPage || 0), Math.max(0, total - 1)));
+            if (sel.value === cp) return;
+            if (sel.value !== '') pl.pageTexts[sel.value] = pageTa.value;
+            sel.value = cp;
+            pageTa.value = pl.pageTexts[cp] != null ? pl.pageTexts[cp] : '';
+            sel.dataset.prevPageKey = cp;
+        }
+
+        /**
+         * Số trang dùng cho UI "nhãn theo trang" (in đơn: totalPages; duplex: max trang mặt trước/sau).
+         */
+        getPrintLabelPageCount() {
+            const pd = this.printData;
+            if (!pd) return 1;
+            const maxP = Math.max(1, pd.maxPhotosPerPage || 1);
+            if (pd.config && pd.config.printMode === 'duplex') {
+                const fc = pd.frontImages && pd.frontImages.length ? pd.frontImages.length : 0;
+                const bc = pd.backImages && pd.backImages.length ? pd.backImages.length : 0;
+                const fp = fc ? Math.ceil(fc / maxP) : 0;
+                const bp = bc ? Math.ceil(bc / maxP) : 0;
+                return Math.max(fp, bp, 1);
+            }
+            return Math.max(1, pd.totalPages || 1);
+        }
+
+        /**
+         * Nội dung chữ nhãn hiệu lực cho một trang (override theo trang hoặc nội dung mặc định).
+         */
+        getPrintLabelTextForPage(pl, pageIndex) {
+            if (!pl) return '';
+            const base = (pl.text != null ? String(pl.text) : '').trim();
+            if (!pl.usePerPageText || !pl.pageTexts || typeof pl.pageTexts !== 'object') {
+                return base;
+            }
+            const o = pl.pageTexts[String(pageIndex)];
+            if (o != null && String(o).trim() !== '') {
+                return String(o).trim();
+            }
+            return base;
         }
 
         /**
          * Vẽ nhãn chữ góc trên (đánh dấu / phân loại bản in).
          * Vị trí lệch theo lề giấy + lề thêm + ước lượng khoảng an toàn khi có đường cắt.
          */
-        drawPrintLabel(ctx, canvas, config) {
+        drawPrintLabel(ctx, canvas, config, pageIndex = 0) {
             if (!config.printLabel) {
                 config.printLabel = {
                     enabled: false,
                     text: '',
+                    usePerPageText: false,
+                    pageTexts: {},
                     corner: 'tl',
                     fontMm: 3,
                     extraInsetMm: 1,
@@ -18553,7 +18750,7 @@
             }
             const pl = config.printLabel;
             if (!pl || !pl.enabled) return;
-            const raw = (pl.text != null ? String(pl.text) : '').trim();
+            const raw = this.getPrintLabelTextForPage(pl, pageIndex);
             if (!raw) return;
 
             const paperW = config.orientation === 'portrait' ? config.paperSize.width : config.paperSize.height;
@@ -23144,7 +23341,7 @@
 
                             // 🚫 KHÔNG vẽ cutting guides cho mặt sau (mặt trước đã có đủ)
                             // this.drawCuttingGuides(ctx, masterCanvas, config);
-                            this.drawPrintLabel(ctx, masterCanvas, config);
+                            this.drawPrintLabel(ctx, masterCanvas, config, pageIndex);
 
                             // Restore original selectedImages
                             this.printData.selectedImages = originalSelectedImages;

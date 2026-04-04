@@ -1727,6 +1727,114 @@
             font-size: 0.92em;
         }
 
+        .print-label-default-col {
+            flex: 1;
+            min-width: 160px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .print-label-field-label {
+            font-size: 0.82em;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .print-label-per-page-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 4px 0 8px 0;
+            padding: 8px 10px;
+            background: rgba(241, 245, 249, 0.85);
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .print-label-per-page-check {
+            padding-top: 0;
+        }
+
+        .print-label-per-page-wrap {
+            margin-bottom: 12px;
+            padding: 12px 14px;
+            background: #fff;
+            border: 1px dashed #94a3b8;
+            border-radius: 12px;
+        }
+
+        .print-label-page-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 10px;
+            margin-bottom: 10px;
+        }
+
+        .print-label-toolbar-label {
+            font-weight: 600;
+            font-size: 0.88em;
+            color: #0f172a;
+        }
+
+        .print-label-page-select {
+            min-width: 130px;
+        }
+
+        .print-label-btn {
+            padding: 7px 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1px solid #0ea5e9;
+            background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: #0369a1;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .print-label-btn:hover {
+            background: #e0f2fe;
+            border-color: #0284c7;
+        }
+
+        .print-label-btn-secondary {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        .print-label-btn-secondary:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        .print-label-page-textarea {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .print-label-page-hint {
+            margin: 8px 0 0 0;
+            font-size: 0.78em;
+            color: #64748b;
+            line-height: 1.45;
+        }
+
+        .print-label-sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
         .flip-buttons-inline {
             display: flex;
             gap: 8px;
